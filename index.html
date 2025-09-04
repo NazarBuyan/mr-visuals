@@ -1,0 +1,1363 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MetaReview Landing – Cinematic (Magic Moment Foreground)</title>
+
+    <!-- Tailwind (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              background: 'hsl(0 0% 100%)',
+              card: 'hsl(0 0% 100% / 0.95)',
+              primary: '#6D4AFF',
+              secondary: '#9AE6B4',
+              accent: '#7C3AED',
+              border: 'hsl(240 5% 84%)',
+              'muted-foreground': 'hsl(240 4% 46%)',
+            },
+            backgroundImage: { 'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))' },
+            keyframes: {
+              grainMove: { '0%': { transform:'translate(0,0)' }, '100%': { transform:'translate(-10%, -10%)' } },
+              pulseHalo: {
+                '0%':   { boxShadow: '0 0 0 0 rgba(109,74,255,0.0)' },
+                '50%':  { boxShadow: '0 0 0 24px rgba(109,74,255,0.12)' },
+                '100%': { boxShadow: '0 0 0 0 rgba(109,74,255,0.0)' },
+              },
+              rotateSlow: { '0%': { transform:'rotate(0deg)' }, '100%': { transform:'rotate(360deg)' } }
+            },
+            animation: {
+              grainMove:'grainMove 12s linear infinite',
+              pulseHalo:'pulseHalo 3s ease-in-out infinite',
+              rotateSlow:'rotateSlow 14s linear infinite'
+            }
+          },
+        },
+      }
+    </script>
+
+    <!-- GSAP -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
+
+    <style>
+      /* BAN SCROLLING */
+      html, body { height: 100%; overflow: hidden !important; overscroll-behavior: none !important; touch-action: none !important; -ms-overflow-style: none; scrollbar-width: none; }
+      html::-webkit-scrollbar, body::-webkit-scrollbar { width:0; height:0; display:none; }
+
+      .glass { backdrop-filter: blur(10px); }
+      .card { background: rgba(255,255,255,0.95); border: 1px solid hsl(240 5% 84%); border-radius: 1rem; box-shadow: 0 20px 40px rgba(0,0,0,.08); }
+      .bg-meta { background-image: linear-gradient(to bottom, hsl(0 0% 100%), rgba(154,230,180,0.10), rgba(154,230,180,0.30)); }
+
+      .cinematic-overlay{
+        position:absolute; inset:0; pointer-events:none; z-index:5;
+        background:
+          radial-gradient(120% 100% at 50% 60%, rgba(0,0,0,0) 30%, rgba(0,0,0,0.20) 85%),
+          radial-gradient(90% 80% at 50% 50%, rgba(109,74,255,0.10), rgba(124,58,237,0.12), rgba(0,0,0,0) 70%);
+        opacity:0; will-change:opacity;
+      }
+      .cinematic-grain{ position:absolute; inset:0; mix-blend-mode:overlay; opacity:.06; z-index:6; pointer-events:none; }
+      .cinematic-grain::before{
+        content:""; position:absolute; inset:-20%;
+        background-image: repeating-radial-gradient(circle at 20% 30%, rgba(0,0,0,0.9) 0 1px, transparent 1px 3px);
+        animation: grainMove 12s linear infinite;
+      }
+
+      .perspective-1000 { perspective: 1000px; }
+      .preserve-3d     { transform-style: preserve-3d; }
+
+      #stage { position: relative; width: 100%; height: 100vh; }
+      #stage > section { position: absolute; inset: 0; display: none; }
+      #stage > section.active { display: flex; }
+
+      #review-hive { transform-origin: 50% 50%; will-change: transform, opacity, filter; }
+      @keyframes scrollDot { 0%,100%{ transform: translateY(0); opacity:1 } 50%{ transform: translateY(8px); opacity:.3 } }
+
+      /* S5 inspired badge */
+      .s5-badge {
+        display:inline-flex; align-items:center; gap:.5rem;
+        padding:.5rem .9rem; border-radius:9999px;
+        background: rgba(124,58,237,0.95); color:white;
+        border: 1px solid rgba(124,58,237,0.30);
+        box-shadow: 0 10px 30px rgba(107,33,168,0.30);
+        font-size:.75rem; font-weight:700; white-space:nowrap;
+        backdrop-filter: blur(6px);
+        will-change: transform, opacity, box-shadow;
+      }
+
+      /* Magic Moment visual kit */
+      .mm-core {
+        position: absolute; left:50%; top:50%; transform: translate(-50%,-50%);
+        width: 180px; height: 180px; border-radius: 9999px;
+        background: radial-gradient(60% 60% at 50% 50%, rgba(109,74,255,0.9), rgba(124,58,237,0.85), rgba(109,74,255,0.5) 60%, rgba(109,74,255,0.15) 100%);
+        border: 1px solid rgba(255,255,255,0.35);
+        box-shadow: 0 30px 80px rgba(109,74,255,0.35), inset 0 0 28px rgba(255,255,255,0.28);
+        filter: saturate(1.1);
+        z-index: 15;
+      }
+      .mm-orbit {
+        position:absolute; inset:-18px; border-radius:9999px;
+        border: 1px dashed rgba(255,255,255,0.35);
+        mix-blend-mode: screen; pointer-events:none;
+      }
+      .mm-core-label {
+        position:absolute; left:50%; top: 50%; transform: translate(-50%,-50%);
+        color:white; text-align:center; font-weight:800; letter-spacing:.04em;
+        text-shadow: 0 2px 12px rgba(0,0,0,0.25);
+      }
+      .mm-beam {
+        position:absolute; height: 6px; border-radius: 9999px; transform-origin: left center;
+        background: linear-gradient(90deg, rgba(125,64,255,0.0), rgba(125,64,255,0.65), rgba(125,64,255,0.0));
+        filter: blur(0.2px) drop-shadow(0 0 18px rgba(125,64,255,0.35));
+        opacity: 0.0; z-index: 12;
+      }
+      .mm-panel {
+        width: 44%; min-width: 320px; will-change: transform, filter, opacity;
+        transition: transform .35s ease, opacity .35s ease, box-shadow .35s ease, filter .35s ease;
+      }
+      .mm-front { z-index: 30; }
+      .mm-back  { z-index: 5;  }
+
+      .segmented {
+        border: 1px solid rgba(109,74,255,0.35);
+        background: rgba(109,74,255,0.06);
+        border-radius: 9999px;
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.35);
+      }
+      .seg-btn { padding:.5rem .9rem; border-radius:9999px; font-weight:700; font-size:.85rem; }
+      .seg-btn.active {
+        background: linear-gradient(135deg, rgba(109,74,255,0.95), rgba(124,58,237,0.95));
+        color:white; box-shadow: 0 10px 30px rgba(109,74,255,0.35);
+      }
+
+      .chip {
+        padding:.35rem .65rem; border-radius:9999px; font-size:.7rem; font-weight:700;
+        border: 1px solid rgba(109,74,255,0.25);
+        background: rgba(109,74,255,0.06); color:#4C1D95;
+      }
+      .mini-card { background: rgba(255,255,255,0.85); border:1px solid hsl(240 5% 84%); border-radius:.75rem; box-shadow: 0 10px 24px rgba(0,0,0,.06); }
+    </style>
+  </head>
+  <body class="min-h-screen bg-background text-gray-900 overflow-x-hidden">
+
+    <main id="app" class="relative">
+  <div id="stage">
+
+    <!-- SCENE 1 -->
+    <section id="scene-1" class="h-screen items-center justify-center relative active">
+      <div class="absolute inset-0 -z-10">
+        <div class="absolute inset-0 bg-gradient-to-br from-primary/30 via-background via-60% to-secondary/40"></div>
+        <div class="absolute inset-0 bg-gradient-radial from-transparent via-primary/5 to-primary/20"></div>
+      </div>
+      <div id="hero-particles" class="absolute inset-0 -z-0 pointer-events-none"></div>
+      <div class="text-center px-4">
+        <h1 id="s1-h1" class="text-5xl md:text-7xl lg:text-8xl font-extrabold mb-8 leading-tight opacity-0">
+          <span class="text-primary">From Reviews to</span><br />
+          <span class="bg-clip-text text-transparent bg-gradient-to-r from-accent to-primary">Supercharged Search</span>
+        </h1>
+        <p id="s1-p" class="text-xl md:text-2xl text-muted-foreground mb-16 max-w-2xl mx-auto opacity-0">
+          Transform hotel guest reviews into intelligent search experiences
+        </p>
+        <div id="s1-ind" class="flex flex-col items-center gap-4 opacity-0">
+          <p class="text-primary font-medium tracking-wide uppercase text-sm animate-pulse">Use ↓↑ to Navigate</p>
+          <div class="w-6 h-12 border-2 border-primary rounded-full mx-auto relative overflow-hidden">
+            <div class="w-1.5 h-4 bg-primary rounded-full mx-auto mt-2 animate-[scrollDot_2.5s_ease-in-out_infinite]"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCENE 2 (Hive) -->
+    <section id="scene-2" class="h-screen items-center justify-center relative overflow-hidden bg-meta">
+      <div id="s2-overlay" class="cinematic-overlay"></div>
+      <div id="s2-grain" class="cinematic-grain"></div>
+      <div id="s3-portal" class="absolute inset-0 z-20 pointer-events-none flex items-center justify-center perspective-1000 opacity-0" style="will-change: opacity, transform;"></div>
+      <div class="relative w-full max-w-full mx-auto px-4">
+        <div id="review-hive" class="relative w-full h-[85vh] overflow-hidden"></div>
+      </div>
+    </section>
+
+    <!-- SCENE 3 (template for card only) -->
+    <section id="scene-3" class="hidden">
+      <div class="w-full max-w-5xl mx-auto px-4 perspective-1000">
+        <div class="card p-8 relative overflow-hidden" id="scene3-card" style="will-change: transform, opacity, filter;">
+          <!-- HEADER -->
+          <div class="flex items-start gap-6 mb-8">
+            <div class="w-28 h-28 md:w-32 md:h-32 rounded-2xl overflow-hidden shadow-lg border border-gray-200">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Langham_london.jpg/1920px-Langham_london.jpg" alt="The Langham London" class="w-full h-full object-cover" />
+            </div>
+            <div class="flex-1 min-w-0">
+              <h3 class="text-3xl md:text-4xl font-extrabold text-gray-900 leading-tight">The Langham London</h3>
+              <p class="mt-1 text-gray-600 flex items-center gap-1">
+                <span class="text-lg">📍</span> London, United Kingdom
+              </p>
+              <div class="mt-3 flex flex-wrap items-center gap-2">
+                <span class="px-3 py-1 rounded-full text-sm font-semibold bg-primary/10 text-primary">TrustScore 4.9</span>
+                <span class="px-3 py-1 rounded-full text-sm font-semibold bg-gray-100 text-gray-700">2,100+ reviews</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- KPI STRIP -->
+          <!--
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="rounded-xl border bg-white/80 p-4">
+              <div class="text-xs text-gray-500 mb-1">Overall</div>
+              <div class="text-2xl font-extrabold text-primary leading-none">9.2</div>
+              <div class="text-[11px] text-gray-500 mt-1">TrustYou MetaReview</div>
+            </div>
+            <div class="rounded-xl border bg-white/80 p-4">
+              <div class="text-xs text-gray-500 mb-1">Sentiment</div>
+              <div class="text-2xl font-extrabold text-emerald-600 leading-none">93% 👍</div>
+              <div class="text-[11px] text-gray-500 mt-1">positive mentions</div>
+            </div>
+            <div class="rounded-xl border bg-white/80 p-4">
+              <div class="text-xs text-gray-500 mb-1">Trending</div>
+              <div class="text-2xl font-extrabold text-indigo-600 leading-none">+0.2</div>
+              <div class="text-[11px] text-gray-500 mt-1">last 90 days</div>
+            </div>
+            <div class="rounded-xl border bg-white/80 p-4">
+              <div class="text-xs text-gray-500 mb-1">Business-friendly</div>
+              <div class="text-2xl font-extrabold text-violet-600 leading-none">Top 3%</div>
+              <div class="text-[11px] text-gray-500 mt-1">in London</div>
+            </div>
+          </div>
+          -->
+
+          <!-- CATEGORY SCORES -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-5 mb-8">
+            <div class="flex flex-col">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-sm font-medium">Service</span>
+                <span class="text-sm font-bold text-primary">4.6</span>
+              </div>
+              <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div class="h-full bg-blue-500 rounded-full" data-bar="91"></div>
+              </div>
+              <div class="mt-1 text-[11px] text-gray-500">“Reception and housekeeping are friendly”</div>
+            </div>
+            <div class="flex flex-col">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-sm font-medium">Cleanliness</span>
+                <span class="text-sm font-bold text-primary">4.4</span>
+              </div>
+              <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div class="h-full bg-emerald-500 rounded-full" data-bar="88"></div>
+              </div>
+              <div class="mt-1 text-[11px] text-gray-500">“Clean rooms and bathrooms”</div>
+            </div>
+            <div class="flex flex-col">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-sm font-medium">Comfort</span>
+                <span class="text-sm font-bold text-primary">3.8</span>
+              </div>
+              <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div class="h-full bg-amber-500 rounded-full" data-bar="75"></div>
+              </div>
+              <div class="mt-1 text-[11px] text-gray-500">“Okay room size, but comfortable and quiet”</div>
+            </div>
+            <div class="flex flex-col">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-sm font-medium">Location</span>
+                <span class="text-sm font-bold text-primary">4.9</span>
+              </div>
+              <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div class="h-full bg-purple-500 rounded-full" data-bar="97"></div>
+              </div>
+              <div class="mt-1 text-[11px] text-gray-500">“Great sightseeing, restaurants and shopping nearby”</div>
+            </div>
+          </div>
+
+          <!-- TRAVELER TYPES -->
+          <div class="bg-gray-50 rounded-2xl p-4 grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="text-center">
+              <div class="text-2xl mb-1">👔</div>
+              <div class="text-xs text-gray-600">Business</div>
+              <div class="text-sm font-bold text-primary">45%</div>
+            </div>
+            <div class="text-center">
+              <div class="text-2xl mb-1">💑</div>
+              <div class="text-xs text-gray-600">Couples</div>
+              <div class="text-sm font-bold text-primary">30%</div>
+            </div>
+            <div class="text-center">
+              <div class="text-2xl mb-1">👨‍👩‍👧‍👦</div>
+              <div class="text-xs text-gray-600">Families</div>
+              <div class="text-sm font-bold text-primary">20%</div>
+            </div>
+            <div class="text-center">
+              <div class="text-2xl mb-1">🚶</div>
+              <div class="text-xs text-gray-600">Solo</div>
+              <div class="text-sm font-bold text-primary">5%</div>
+            </div>
+          </div>
+
+          <!-- HIGHLIGHTS -->
+          <div class="flex flex-wrap gap-2 mb-6">
+            <span class="px-3 py-1 bg-accent/10 text-accent rounded-full text-xs font-semibold">Exceptional Breakfast</span>
+            <span class="px-3 py-1 bg-accent/10 text-accent rounded-full text-xs font-semibold">Walkable Location</span>
+            <span class="px-3 py-1 bg-accent/10 text-accent rounded-full text-xs font-semibold">Quiet Rooms</span>
+            <span class="px-3 py-1 bg-accent/10 text-accent rounded-full text-xs font-semibold">Historic Charm</span>
+            <span class="px-3 py-1 bg-accent/10 text-accent rounded-full text-xs font-semibold">Business-Ready</span>
+          </div>
+
+          <!-- BADGES -->
+          <div class="flex flex-wrap gap-3">
+            <div class="px-3 py-2 rounded-lg text-xs font-semibold bg-yellow-500/20 text-yellow-800">Top 3% Business in London</div>
+            <div class="px-3 py-2 rounded-lg text-xs font-semibold bg-green-500/20 text-green-800">Exceptional Breakfast</div>
+            <div class="px-3 py-2 rounded-lg text-xs font-semibold bg-blue-500/20 text-blue-800">Top 10% Location</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCENE 4 – Scaling to Millions -->
+    <section id="scene-4" class="h-screen items-center justify-center relative">
+      <div class="absolute inset-0 bg-gradient-to-br from-background via-secondary/5 to-primary/10 -z-10"></div>
+      <div class="w-full max-w-7xl mx-auto px-4">
+        <div id="s4-title" class="text-center mb-12 opacity-0">
+          <h2 class="text-4xl md:text-6xl font-bold text-primary mb-4">Scaling to Millions</h2>
+          <p class="text-xl text-gray-600">Every hotel analyzed with the same precision</p>
+        </div>
+        <div id="hotel-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4"></div>
+        <div id="s4-stats"
+  class="opacity-0 absolute left-1/2 -translate-x-1/2 bottom-6 md:bottom-10 z-20">
+  <div
+    class="bg-white/95 glass border border-primary/30 rounded-xl px-6 py-4 shadow-2xl flex items-center text-center divide-x divide-gray-200 whitespace-nowrap min-w-[700px]">
+    <div class="flex-1 px-4">
+      <div class="text-xl font-bold text-primary">1.3M+</div>
+      <div class="text-xs text-gray-600">Hotels</div>
+    </div>
+    <div class="flex-1 px-4">
+      <div class="text-xl font-bold text-primary">2.3M+</div>
+      <div class="text-xs text-gray-600">Reviews Processed Weekly</div>
+    </div>
+    <div class="flex-1 px-4">
+      <div class="text-xl font-bold text-primary">40</div>
+      <div class="text-xs text-gray-600">Languages Supported</div>
+    </div>
+  </div>
+</div>
+
+
+      </div>
+    </section>
+
+    <!-- SCENE 5 – Cross-Benchmarking -->
+    <section id="scene-5" class="h-screen items-center justify-center relative">
+      <div class="absolute inset-0 bg-gradient-to-br from-background via-primary/5 to-secondary/15 -z-10"></div>
+      <div class="w-full max-w-7xl mx-auto px-4 relative">
+        <div id="s5-title" class="text-center mb-12 opacity-0">
+          <h2 class="text-4xl md:text-6xl font-bold text-accent mb-4">Cross-Benchmarking</h2>
+          <p class="text-xl text-gray-600">Identifying the true standouts across millions of properties</p>
+        </div>
+
+        <div id="s5-wrapper" class="relative">
+          <div id="benchmark-grid" class="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-4"></div>
+          <div id="s5-badges" class="absolute inset-0 pointer-events-none z-10"></div>
+        </div>
+
+        <div id="s5-stats" class="mt-10 flex items-center justify-center opacity-0">
+          <div class="bg-white/95 glass border border-purple-300 rounded-full px-8 py-4 shadow-xl flex items-center gap-8 text-center">
+            <div><div class="text-2xl font-bold text-accent">55</div><div class="text-xs text-gray-600">Recognition Badges</div></div>
+            <div class="w-px h-8 bg-gray-200"></div>
+            <div><div class="text-2xl font-bold text-primary">160+</div><div class="text-xs text-gray-600">Categories</div></div>
+            <div class="w-px h-8 bg-gray-200"></div>
+            <div><div class="text-2xl font-bold text-accent">24 month</div><div class="text-xs text-gray-600">Data freshness</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCENE 6 – The Magic Moment (Foreground switch) -->
+    <section id="scene-6" class="h-screen items-center justify-center relative overflow-hidden">
+      <!-- Subtle background -->
+      <div class="absolute inset-0 bg-gradient-to-br from-background via-secondary/5 to-primary/10 -z-10"></div>
+
+      <!-- Title + tabs -->
+      <div id="s6-title" class="absolute top-6 left-1/2 -translate-x-1/2 text-center z-10 opacity-0">
+        <h2 class="text-4xl md:text-6xl font-extrabold text-primary mb-8">Key Use Cases</h2>
+        <div class="mt-4 inline-flex segmented p-1" role="tablist" aria-label="Magic Moment Views">
+          <button id="seg-filters" class="seg-btn active" aria-selected="true">Vibe Filters</button>
+          <button id="seg-studio"  class="seg-btn"        aria-selected="false">Campaign Foundry</button>
+        </div>
+      </div>
+
+      <!-- Single-panel stage (one visible at a time) -->
+      <div class="w-full max-w-5xl mx-auto px-4 md:px-6 pt-36">
+        <!-- VIBE FILTERS PANEL -->
+        <div id="panel-filters" class="card p-6 md:p-8 opacity-0 translate-y-3">
+          <div class="flex items-center justify-between mb-5">
+            <div>
+              <div class="text-xs font-bold text-primary/80 uppercase tracking-wide">Vibe Filters</div>
+              <h3 class="text-2xl md:text-3xl font-extrabold">Find hotels by real guest vibes</h3>
+            </div>
+            <div class="hidden md:block text-xs text-gray-500">Powered by TrustYou MetaReview</div>
+          </div>
+
+          <!-- Controls -->
+          <div class="grid grid-cols-1 gap-6 mb-6">
+            <div class="space-y-5">
+              <div>
+                <div class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2">Traveler Type</div>
+                <div class="flex flex-wrap gap-2">
+                  <button class="chip" aria-selected="true">Business</button>
+                  <button class="chip">Couples</button>
+                  <button class="chip">Family</button>
+                  <button class="chip">Solo</button>
+                </div>
+              </div>
+
+              <div>
+                <div class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2">Ambience</div>
+                <div class="flex flex-wrap gap-2">
+                  <button class="chip">Romantic</button>
+                  <button class="chip">Quiet</button>
+                  <button class="chip">Trendy</button>
+                  <button class="chip">Historic</button>
+                  <button class="chip">Wellness</button>
+                  <button class="chip">Ski</button>
+                </div>
+              </div>
+
+              <div>
+                <div class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2">Category Minimums</div>
+                <div class="space-y-3">
+                  <div>
+                    <div class="flex justify-between text-xs">
+                      <span>Cleanliness</span><span class="text-primary font-bold">4.5+</span>
+                    </div>
+                    <div class="bg-gray-100 rounded-full h-2">
+                      <div class="bg-primary h-2 rounded-full w-0" data-bar="86"></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="flex justify-between text-xs">
+                      <span>Service</span><span class="text-primary font-bold">4.2+</span>
+                    </div>
+                    <div class="bg-gray-100 rounded-full h-2">
+                      <div class="bg-primary h-2 rounded-full w-0" data-bar="84"></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="flex justify-between text-xs">
+                      <span>Comfort</span><span class="text-primary font-bold">4.3+</span>
+                    </div>
+                    <div class="bg-gray-100 rounded-full h-2">
+                      <div class="bg-primary h-2 rounded-full w-0" data-bar="85"></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="flex justify-between text-xs">
+                      <span>Location</span><span class="text-primary font-bold">4.0+</span>
+                    </div>
+                    <div class="bg-gray-100 rounded-full h-2">
+                      <div class="bg-primary h-2 rounded-full w-0" data-bar="82"></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="flex justify-between text-xs">
+                      <span>Breakfast</span><span class="text-primary font-bold">4.5+</span>
+                    </div>
+                    <div class="bg-gray-100 rounded-full h-2">
+                      <div class="bg-primary h-2 rounded-full w-0" data-bar="86"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- CAMPAIGN FOUNDRY PANEL -->
+        <div id="panel-studio" class="card p-6 md:p-8 hidden opacity-0 translate-y-3">
+          <div class="flex items-center justify-between mb-5">
+            <div>
+              <div class="text-xs font-bold text-accent/80 uppercase tracking-wide">Campaign Foundry</div>
+              <h3 class="text-2xl md:text-3xl font-extrabold">Build campaigns & packages from guest vibes</h3>
+            </div>
+            <div class="hidden md:block text-xs text-gray-500">TrustYou MetaReview</div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Templates -->
+            
+             <div class="rounded-xl border p-4 bg-white/85">
+                <div class="flex items-center justify-between">
+                  <div class="font-semibold flex items-center gap-2"><span>💞</span> Romantic • Valentine’s</div>
+                  
+                </div>
+                <div class="mt-3 flex flex-wrap gap-2">
+                  <span class="chip">City = Paris</span><span class="chip">Traveler = Couples</span><span class="chip">Ambience = Romantic</span>
+                  <span class="chip">Cleanliness ≥ 4.5</span><span class="chip">Breakfast ≥ 4.5</span>
+                </div>
+                <div class="mt-3 text-[11px] text-gray-500">MetaReview Reviews</div>
+                <div class="text-2xl font-extrabold text-accent"><span id="audience-romantic">184,000</span></div>
+              </div>
+
+
+              <div class="rounded-xl border p-4 bg-white/85">
+                <div class="flex items-center justify-between">
+                  <div class="font-semibold flex items-center gap-2"><span>⛷️</span> Top Ski • Winter</div>
+                  
+                </div>
+                <div class="mt-3 flex flex-wrap gap-2">
+                  <span class="chip">Region = Alps</span><span class="chip">Ambience = Ski</span><span class="chip">Location ≥ 4.3</span>
+                  <span class="chip">Service ≥ 4.2</span><span class="chip">Comfort ≥ 4.2</span>
+                </div>
+                <div class="mt-3 text-[11px] text-gray-500">MetaReview Reviews</div>
+                <div class="text-2xl font-extrabold text-accent"><span id="audience-ski">126,500</span></div>
+              </div>
+          </div>
+        </div>
+        <!-- /panel-studio -->
+      </div>
+    </section>
+
+  </div>
+</main>
+
+
+    <script>
+  /* -------- Block native scroll -------- */
+  const blockEvent = (e) => { e.preventDefault(); e.stopPropagation(); return false; };
+  ['wheel','touchmove','scroll'].forEach(evt => window.addEventListener(evt, blockEvent, {passive:false}));
+  window.addEventListener('keydown', (e) => {
+    const keys = ['Space','PageDown','PageUp','Home','End','ArrowUp','ArrowDown'];
+    if (keys.includes(e.code)) blockEvent(e);
+  }, {passive:false});
+
+  /* -------- Particles -------- */
+  function makeParticles(containerId, count = 30) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    for (let i = 0; i < count; i++) {
+      const b = document.createElement('div');
+      b.className = 'absolute rounded-full bg-primary/30';
+      const size = Math.random() * 6 + 2;
+      b.style.width = `${size}px`; b.style.height = `${size}px`;
+      b.style.left = `${Math.random() * 100}%`; b.style.top = `${Math.random() * 100}%`;
+      el.appendChild(b);
+      gsap.to(b, { y:`-=${20 + Math.random()*20}`, opacity:0.3 + Math.random()*0.5, scale:1 + Math.random()*0.5,
+        duration:3 + Math.random()*3, repeat:-1, yoyo:true, ease:'sine.inOut', delay:Math.random()*2, force3D:true });
+    }
+  }
+  makeParticles('hero-particles', 30);
+
+  /* -------- Scene 2: Hive -------- */
+  let hiveTween = null;
+  const reviews = [
+    { text: 'Amazing full English breakfast!', platform: 'Google', sentiment: 'positive', lang: 'en', icon: 'G' },
+    { text: 'Room overlooked Hyde Park beautifully', platform: 'Booking', sentiment: 'positive', lang: 'en', icon: 'B' },
+    { text: 'Location near Tower Bridge perfect', platform: 'TripAdvisor', sentiment: 'positive', lang: 'en', icon: 'T' },
+    { text: 'Staff très sympathique et serviable', platform: 'Hotels.com', sentiment: 'positive', lang: 'fr', icon: 'H' },
+    { text: 'Bit noisy from London traffic', platform: 'Google', sentiment: 'negative', lang: 'en', icon: 'G' },
+    { text: 'Excellent value in Central London', platform: 'Booking', sentiment: 'positive', lang: 'en', icon: 'B' },
+    { text: 'WiFi connection was unreliable', platform: 'TripAdvisor', sentiment: 'negative', lang: 'en', icon: 'T' },
+    { text: 'Thames view from balcony stunning', platform: 'Hotels.com', sentiment: 'positive', lang: 'en', icon: 'H' },
+    { text: 'Desayuno increíble, muy británico', platform: 'Google', sentiment: 'positive', lang: 'es', icon: 'G' },
+    { text: 'Check-in at Heathrow was smooth', platform: 'Booking', sentiment: 'positive', lang: 'en', icon: 'B' },
+    { text: 'Gym facilities need updating', platform: 'TripAdvisor', sentiment: 'negative', lang: 'en', icon: 'T' },
+    { text: 'Perfect for business in Canary Wharf', platform: 'Hotels.com', sentiment: 'positive', lang: 'en', icon: 'H' },
+    { text: 'Camere silenziose vicino a Oxford Street', platform: 'Booking', sentiment: 'positive', lang: 'it', icon: 'B' },
+    { text: 'Breakfast queue took too long', platform: 'Google', sentiment: 'negative', lang: 'en', icon: 'G' },
+    { text: 'Personnel très professionnel', platform: 'TripAdvisor', sentiment: 'positive', lang: 'fr', icon: 'T' },
+    { text: 'Great access to Underground lines', platform: 'Hotels.com', sentiment: 'positive', lang: 'en', icon: 'H' },
+    { text: 'Zimmer sauber, Bett sehr bequem', platform: 'Google', sentiment: 'positive', lang: 'de', icon: 'G' },
+    { text: 'Aircon a bit weak during heatwave', platform: 'Booking', sentiment: 'negative', lang: 'en', icon: 'B' },
+    { text: 'Perfect afternoon tea experience', platform: 'TripAdvisor', sentiment: 'positive', lang: 'en', icon: 'T' },
+    { text: 'Ubicación ideal para visitar museos', platform: 'Hotels.com', sentiment: 'positive', lang: 'es', icon: 'H' },
+    { text: 'Lobby vibe is chic and calm', platform: 'Google', sentiment: 'positive', lang: 'en', icon: 'G' },
+    { text: 'Service consistent but not warm', platform: 'Booking', sentiment: 'neutral', lang: 'en', icon: 'B' },
+    { text: 'Bello il panorama sul Tamigi', platform: 'TripAdvisor', sentiment: 'positive', lang: 'it', icon: 'T' },
+    { text: 'Parking is limited and pricey', platform: 'Hotels.com', sentiment: 'negative', lang: 'en', icon: 'H' },
+    { text: 'Staff handled a late check-in flawlessly', platform: 'Google', sentiment: 'positive', lang: 'en', icon: 'G' },
+  ];
+
+  function destroyHive() {
+    if (hiveTween) { hiveTween.kill(); hiveTween = null; }
+    const hive = document.getElementById('review-hive');
+    if (hive) hive.innerHTML = '';
+  }
+  function buildHive() {
+    destroyHive();
+    const hive = document.getElementById('review-hive');
+    if (!hive) return;
+    const rect = hive.getBoundingClientRect();
+    const pad = 48;
+
+    reviews.forEach((r) => {
+      const card = document.createElement('div');
+      const tintClass = r.sentiment === 'positive'
+        ? 'bg-green-50/90 border-green-200 text-green-800'
+        : r.sentiment === 'negative'
+          ? 'bg-red-50/90 border-red-200 text-red-800'
+          : 'bg-yellow-50/90 border-yellow-200 text-yellow-800';
+      card.className = `review-card absolute max-w-xs p-4 rounded-xl border-2 text-sm font-medium leading-relaxed pointer-events-none ${tintClass}`;
+      card.style.willChange = 'transform, opacity';
+      card.innerHTML = `
+        <div class="flex items-center gap-2 mb-2">
+          <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${
+            r.platform === 'Google' ? 'bg-blue-500'
+            : r.platform === 'Booking' ? 'bg-blue-600'
+            : r.platform === 'TripAdvisor' ? 'bg-green-600'
+            : 'bg-orange-500'
+          }">${r.icon}</div>
+          <span class="text-xs font-medium opacity-70">${r.platform}</span>
+          ${r.lang !== 'en' ? `<span class="text-xs px-1.5 py-0.5 bg-primary/20 text-primary rounded uppercase font-medium">${r.lang}</span>` : ''}
+        </div>
+        <div>${r.text}</div>`;
+      hive.appendChild(card);
+      gsap.set(card, {
+        x: gsap.utils.random(pad, Math.max(pad, rect.width - pad)),
+        y: gsap.utils.random(pad, Math.max(pad, rect.height - pad)),
+        opacity: 0,
+        force3D: true
+      });
+    });
+
+    gsap.to(hive.querySelectorAll('.review-card'), {
+      opacity: 1, duration: 0.45, ease: 'power2.out', stagger: 0.03, force3D: true
+    });
+
+    const cards = gsap.utils.toArray('.review-card');
+    hiveTween = gsap.to(cards, {
+      x: () => {
+        const { width } = hive.getBoundingClientRect(); const p = 48;
+        return gsap.utils.random(p, Math.max(p, width - p));
+      },
+      y: () => {
+        const { height } = hive.getBoundingClientRect(); const p = 48;
+        return gsap.utils.random(p, Math.max(p, height - p));
+      },
+      rotate: () => gsap.utils.random(-4, 4),
+      scale: () => gsap.utils.random(0.98, 1.04),
+      duration: () => gsap.utils.random(6, 10),
+      ease: 'sine.inOut',
+      repeat: -1, yoyo: true, repeatRefresh: true,
+      stagger: { each: 0.06 },
+      force3D: true
+    });
+  }
+  function pauseHive() { if (hiveTween) hiveTween.pause(); }
+  function resumeHive() { if (hiveTween) hiveTween.play(); }
+
+  /* -------- Scene 2→3 cinematic -------- */
+  let s23tl = null;
+  let scene3CardHTML = null;
+  window.addEventListener('DOMContentLoaded', () => {
+    const original = document.getElementById('scene3-card');
+    if (original) scene3CardHTML = original.innerHTML;
+  });
+  function rebuildScene3Card() {
+    const card = document.createElement('div');
+    card.className = 'card relative overflow-hidden glass shadow-2xl';
+    card.id = 'scene3-card';
+    card.style.willChange = 'transform, opacity, filter';
+    card.classList.add('p-8', 'md:p-10', 'max-w-4xl', 'w-[92%]');
+    card.innerHTML = scene3CardHTML || '';
+    return card;
+  }
+  function resetS23() {
+    if (s23tl) { s23tl.kill(); s23tl = null; }
+    const portal = document.getElementById('s3-portal');
+    const overlay = document.getElementById('s2-overlay');
+    const grain = document.getElementById('s2-grain');
+    if (portal) portal.innerHTML = '';
+    gsap.set([portal, overlay, grain], { opacity: 0 });
+    gsap.set('#review-hive', { clearProps:'filter', opacity: 1, scale: 1, y: 0 });
+  }
+  function buildS23() {
+    resetS23();
+    const hive     = document.getElementById('review-hive');
+    const overlay  = document.getElementById('s2-overlay');
+    const grain    = document.getElementById('s2-grain');
+    const portal   = document.getElementById('s3-portal');
+    if (!hive || !overlay || !grain || !portal) return null;
+
+    const iris = document.createElement('div');
+    iris.className = 'relative preserve-3d';
+    iris.style.clipPath = 'circle(16% at 50% 50%)';
+    iris.style.willChange = 'transform, clip-path, opacity';
+    const card = rebuildScene3Card();
+    portal.appendChild(iris); iris.appendChild(card);
+
+    gsap.set(card, { opacity: 0, z: -600, rotateX: 6, scale: 0.9, filter: 'blur(8px) saturate(0.95)' });
+
+    s23tl = gsap.timeline({ paused:true, defaults:{ force3D:true } });
+    s23tl.add(() => pauseHive());
+
+    s23tl.addLabel('zoom', 0)
+      .to(overlay, { opacity: 1, duration: 0.6, ease: 'power2.out' }, 'zoom')
+      .to(hive,    { scale: 2.5, duration: 2, ease: 'power4.inOut' }, 'zoom');
+
+    s23tl.addLabel('blurOut', 1.1)
+      .to(hive,   { filter: 'blur(10px) saturate(1.06)', duration: 0.7, ease: 'power2.out' }, 'blurOut')
+      .to(hive,   { opacity: 0, duration: 1.0, ease: 'power2.inOut' }, 'blurOut+=0.1')
+      .to(grain,  { opacity: 0.08, duration: 0.6, ease: 'power1.out' }, 'blurOut')
+      .to(portal, { opacity: 1, duration: 0.6, ease: 'power1.out' }, 'blurOut+=0.15');
+
+    s23tl.addLabel('emerge', 1.8)
+      .to(iris, { clipPath: 'circle(130% at 50% 50%)', duration: 1.05, ease: 'power4.out' }, 'emerge')
+      .to(card, { opacity: 1, z: 0, rotateX: 0, scale: 1, filter: 'blur(0px) saturate(1)', duration: 1.1, ease: 'power4.out' }, 'emerge+=0.05');
+
+    s23tl.call(() => {
+      const bars = card.querySelectorAll('[data-bar]');
+      bars.forEach((bar, i) => {
+        const w = bar.getAttribute('data-bar');
+        gsap.fromTo(bar, { width: 0 }, { width: `${w}%`, duration: 0.8, ease: 'power2.out', delay: 0.15 * i });
+      });
+    }, null, 'emerge+=0.3');
+
+    s23tl.eventCallback('onReverseComplete', () => { resetS23(); resumeHive(); });
+    return s23tl;
+  }
+
+  /* -------- Scene 4 -------- */
+  const hotelList = [
+  {
+    "name": "The Langham London",
+    "score": 4.9,
+    "city": "London",
+    "isOriginal": true,
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Langham_london.jpg/1920px-Langham_london.jpg",
+    "reviews_count": 2198
+  },
+  {
+    "name": "Claridge's",
+    "score": 4.5,
+    "city": "London",
+    "img": "https://lh3.googleusercontent.com/p/AF1QipMcAFofAkmAzxCXHdsnZk1GLj_lWV1oiyLnFNQt=s1360-w1360-h1020-rw",
+    "reviews_count": 4528
+  },
+  {
+    "name": "The Savoy",
+    "score": 4.4,
+    "city": "London",
+    "img": "https://www.ahstatic.com/photos/a597_ho_00_p_2048x1536.jpg",
+    "reviews_count": 3590
+  },
+  {
+    "name": "The Ritz London",
+    "score": 4.3,
+    "city": "London",
+    "img": "https://media.architecturaldigest.com/photos/55e796eb302ba71f3018054d/16:9/w_2240,c_limit/dam-images-homes-2002-05-ritz-hoar01_ritz.jpg",
+    "reviews_count": 7850
+  },
+  {
+    "name": "Shangri-La London",
+    "score": 4.2,
+    "city": "London",
+    "img": "https://www.outthere.travel/wp-content/uploads/2020/07/Shangrila-London-at-the-Shard-1.jpg",
+    "reviews_count": 8059
+  },
+  {
+    "name": "Covent Garden Hotel",
+    "score": 4.2,
+    "city": "London",
+    "img": "https://www.residenthotels.com/wp-content/uploads/2022/06/The-Resident-Covent-Garden-Exterior-dusk.jpg",
+    "reviews_count": 3779
+  },
+  {
+    "name": "The Zetter Townhouse",
+    "score": 4.1,
+    "city": "London",
+    "img": "https://cf.bstatic.com/xdata/images/hotel/max1024x768/77003227.jpg?k=e6473a8ebe28f9dbb721af8739d839e58e8baa79fc4b6dea10e717b8c617ca04&o=&hp=1",
+    "reviews_count": 3135
+  },
+  {
+    "name": "Hotel Café Royal",
+    "score": 4.4,
+    "city": "London",
+    "img": "https://806d2bf04cf5fa54997a-e7c5344b3b84eec5da7b51276407b19c.ssl.cf1.rackcdn.com/u/hotel-cafe-royal/Hotel-Cafe-Royal---Exterior-Day.jpg",
+    "reviews_count": 5662
+  },
+  {
+    "name": "The Connaught",
+    "score": 4.5,
+    "city": "London",
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Mount_St_%283768612442%29.jpg/1200px-Mount_St_%283768612442%29.jpg",
+    "reviews_count": 3416
+  },
+  {
+    "name": "Rosewood London",
+    "score": 4.3,
+    "city": "London",
+    "img": "https://www.coventgarden.london/media/odflpuz4/rosewood-london.jpg",
+    "reviews_count": 2914
+  },
+  {
+    "name": "The Dorchester",
+    "score": 4.3,
+    "city": "London",
+    "img": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/1c/2b/c1/39/exterior.jpg?w=900&h=500&s=1",
+    "reviews_count": 9299
+  },
+  {
+    "name": "Mandarin Oriental",
+    "score": 4.2,
+    "city": "London",
+    "img": "https://media.ffycdn.net/eu/mandarin-oriental-hotel-group/aq2hRUD5Tfpkof5hz3A9.jpg",
+    "reviews_count": 6209
+  },
+  {
+    "name": "Four Seasons London",
+    "score": 4.2,
+    "city": "London",
+    "img": "https://images.squarespace-cdn.com/content/v1/64a439dde5405e2ca5d9a1b1/2c90bb63-9df7-4a9d-83a2-04c684434311/GrandEntrance_FourSeasonsLondon.jpeg",
+    "reviews_count": 3631
+  },
+  {
+    "name": "The Berkeley",
+    "score": 4.2,
+    "city": "London",
+    "img": "https://cf.bstatic.com/xdata/images/hotel/max1024x768/539860678.jpg?k=432ff19ad405c881056f7e38b98f6606da0fac09aa235169ca714404f69cc74c&o=&hp=1",
+    "reviews_count": 1047
+  },
+  {
+    "name": "Brown's Hotel",
+    "score": 4.1,
+    "city": "London",
+    "img": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/2f/94/62/83/rfh-brown-s-hotel-facade.jpg?w=900&h=500&s=1",
+    "reviews_count": 6416
+  },
+  {
+    "name": "The Ned",
+    "score": 4.0,
+    "city": "London",
+    "img": "https://media.cntraveler.com/photos/5a677a3465efd67e1ef2ca21/16:9/w_2560%2Cc_limit/The-Ned_Paul-Allitt_2018_Copyright-The-Ned-Roof-170509-SB-HR-01.jpg",
+    "reviews_count": 4015
+  },
+  {
+    "name": "Sea Containers",
+    "score": 4.0,
+    "city": "London",
+    "img": "https://www.seacontainerslondon.com/media/ef4ezvd5/exterior-sea-co.jpg?anchor=center&mode=crop&quality=70&width=2300&height=1200&rnd=133216430012900000",
+    "reviews_count": 8962
+  },
+  {
+    "name": "The Standard",
+    "score": 4.0,
+    "city": "London",
+    "img": "https://archello.s3.eu-central-1.amazonaws.com/images/2019/10/29/-c--1Tim-Soar---Orms---The-Standard--14-.1572358819.9665.jpg",
+    "reviews_count": 3411
+  },
+  {
+    "name": "Edition London",
+    "score": 4.1,
+    "city": "London",
+    "img": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzjvRJexofbtMTwcJA69WmnCA10dnb_WPW5A&s",
+    "reviews_count": 9396
+  },
+  {
+    "name": "Chiltern Firehouse",
+    "score": 4.2,
+    "city": "London",
+    "img": "https://www.chilternfirehouse.com/assets/firehouse-55ef596d2d9640e5a4253ff6104a596dd00933a1b2afe1211b3145eea3789f1c.jpg",
+    "reviews_count": 8981
+  },
+  {
+    "name": "The Hoxton",
+    "score": 4.0,
+    "city": "London",
+    "img": "https://static.prod.r53.tablethotels.com/media/hotels/slideshow_images_staged/large/1104741.jpg",
+    "reviews_count": 2328
+  },
+  {
+    "name": "The Ned",
+    "score": 4.0,
+    "city": "London",
+    "img": "https://media.cntraveler.com/photos/5a677a3465efd67e1ef2ca21/16:9/w_2560%2Cc_limit/The-Ned_Paul-Allitt_2018_Copyright-The-Ned-Roof-170509-SB-HR-01.jpg",
+    "reviews_count": 7101
+  },
+  {
+    "name": "Sea Containers",
+    "score": 4.0,
+    "city": "London",
+    "img": "https://www.seacontainerslondon.com/media/ef4ezvd5/exterior-sea-co.jpg?anchor=center&mode=crop&quality=70&width=2300&height=1200&rnd=133216430012900000",
+    "reviews_count": 5824
+  },
+  {
+    "name": "The Standard",
+    "score": 4.0,
+    "city": "London",
+    "img": "https://archello.s3.eu-central-1.amazonaws.com/images/2019/10/29/-c--1Tim-Soar---Orms---The-Standard--14-.1572358819.9665.jpg",
+    "reviews_count": 8436
+  },
+  {
+    "name": "Edition London",
+    "score": 4.1,
+    "city": "London",
+    "img": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzjvRJexofbtMTwcJA69WmnCA10dnb_WPW5A&s",
+    "reviews_count": 6497
+  },
+  {
+    "name": "Chiltern Firehouse",
+    "score": 4.2,
+    "city": "London",
+    "img": "https://www.chilternfirehouse.com/assets/firehouse-55ef596d2d9640e5a4253ff6104a596dd00933a1b2afe1211b3145eea3789f1c.jpg",
+    "reviews_count": 3531
+  },
+  {
+    "name": "The Hoxton",
+    "score": 4.0,
+    "city": "London",
+    "img": "https://static.prod.r53.tablethotels.com/media/hotels/slideshow_images_staged/large/1104741.jpg",
+    "reviews_count": 1436
+  },
+  {
+    "name": "The Ned",
+    "score": 4.0,
+    "city": "London",
+    "img": "https://media.cntraveler.com/photos/5a677a3465efd67e1ef2ca21/16:9/w_2560%2Cc_limit/The-Ned_Paul-Allitt_2018_Copyright-The-Ned-Roof-170509-SB-HR-01.jpg",
+    "reviews_count": 2655
+  },
+  {
+    "name": "Sea Containers",
+    "score": 4.0,
+    "city": "London",
+    "img": "https://www.seacontainerslondon.com/media/ef4ezvd5/exterior-sea-co.jpg?anchor=center&mode=crop&quality=70&width=2300&height=1200&rnd=133216430012900000",
+    "reviews_count": 7084
+  },
+  {
+    "name": "The Standard",
+    "score": 4.0,
+    "city": "London",
+    "img": "https://archello.s3.eu-central-1.amazonaws.com/images/2019/10/29/-c--1Tim-Soar---Orms---The-Standard--14-.1572358819.9665.jpg",
+    "reviews_count": 6417
+  },
+  {
+    "name": "Edition London",
+    "score": 4.1,
+    "city": "London",
+    "img": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzjvRJexofbtMTwcJA69WmnCA10dnb_WPW5A&s",
+    "reviews_count": 4734
+  },
+  {
+    "name": "Chiltern Firehouse",
+    "score": 4.2,
+    "city": "London",
+    "img": "https://www.chilternfirehouse.com/assets/firehouse-55ef596d2d9640e5a4253ff6104a596dd00933a1b2afe1211b3145eea3789f1c.jpg",
+    "reviews_count": 1985
+  },
+  {
+    "name": "The Hoxton",
+    "score": 4.0,
+    "city": "London",
+    "img": "https://static.prod.r53.tablethotels.com/media/hotels/slideshow_images_staged/large/1104741.jpg",
+    "reviews_count": 756
+  },
+  {
+    "name": "The Dorchester",
+    "score": 4.3,
+    "city": "London",
+    "img": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/1c/2b/c1/39/exterior.jpg?w=900&h=500&s=1",
+    "reviews_count": 6392
+  },
+  {
+    "name": "Mandarin Oriental",
+    "score": 4.2,
+    "city": "London",
+    "img": "https://media.ffycdn.net/eu/mandarin-oriental-hotel-group/aq2hRUD5Tfpkof5hz3A9.jpg",
+    "reviews_count": 3121
+  },
+  {
+    "name": "Four Seasons London",
+    "score": 4.2,
+    "city": "London",
+    "img": "https://images.squarespace-cdn.com/content/v1/64a439dde5405e2ca5d9a1b1/2c90bb63-9df7-4a9d-83a2-04c684434311/GrandEntrance_FourSeasonsLondon.jpeg",
+    "reviews_count": 4079
+  },
+  {
+    "name": "The Berkeley",
+    "score": 4.2,
+    "city": "London",
+    "img": "https://cf.bstatic.com/xdata/images/hotel/max1024x768/539860678.jpg?k=432ff19ad405c881056f7e38b98f6606da0fac09aa235169ca714404f69cc74c&o=&hp=1",
+    "reviews_count": 898
+  },
+  {
+    "name": "Brown's Hotel",
+    "score": 4.1,
+    "city": "London",
+    "img": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/2f/94/62/83/rfh-brown-s-hotel-facade.jpg?w=900&h=500&s=1",
+    "reviews_count": 4912
+  },
+  {
+    "name": "The Ned",
+    "score": 4.0,
+    "city": "London",
+    "img": "https://media.cntraveler.com/photos/5a677a3465efd67e1ef2ca21/16:9/w_2560%2Cc_limit/The-Ned_Paul-Allitt_2018_Copyright-The-Ned-Roof-170509-SB-HR-01.jpg",
+    "reviews_count": 714
+  },
+  {
+    "name": "Sea Containers",
+    "score": 4.0,
+    "city": "London",
+    "img": "https://www.seacontainerslondon.com/media/ef4ezvd5/exterior-sea-co.jpg?anchor=center&mode=crop&quality=70&width=2300&height=1200&rnd=133216430012900000",
+    "reviews_count": 9505
+  },
+  {
+    "name": "The Standard",
+    "score": 4.0,
+    "city": "London",
+    "img": "https://archello.s3.eu-central-1.amazonaws.com/images/2019/10/29/-c--1Tim-Soar---Orms---The-Standard--14-.1572358819.9665.jpg",
+    "reviews_count": 8682
+  },
+  {
+    "name": "The Ritz London",
+    "score": 4.3,
+    "city": "London",
+    "img": "https://media.architecturaldigest.com/photos/55e796eb302ba71f3018054d/16:9/w_2240,c_limit/dam-images-homes-2002-05-ritz-hoar01_ritz.jpg",
+    "reviews_count": 3816
+  },
+  {
+    "name": "Shangri-La London",
+    "score": 4.2,
+    "city": "London",
+    "img": "https://www.outthere.travel/wp-content/uploads/2020/07/Shangrila-London-at-the-Shard-1.jpg",
+    "reviews_count": 9673
+  },
+  {
+    "name": "Covent Garden Hotel",
+    "score": 4.2,
+    "city": "London",
+    "img": "https://www.residenthotels.com/wp-content/uploads/2022/06/The-Resident-Covent-Garden-Exterior-dusk.jpg",
+    "reviews_count": 9246
+  },
+  {
+    "name": "The Zetter Townhouse",
+    "score": 4.1,
+    "city": "London",
+    "img": "https://cf.bstatic.com/xdata/images/hotel/max1024x768/77003227.jpg?k=e6473a8ebe28f9dbb721af8739d839e58e8baa79fc4b6dea10e717b8c617ca04&o=&hp=1",
+    "reviews_count": 402
+  }
+];
+
+  function buildScene4() {
+  const grid = document.getElementById('hotel-grid');
+  grid.innerHTML = '';
+
+  const total = hotelList.length;
+  const maxBlur = 6; // how strong the blur gets by the end
+
+  hotelList.forEach((h, i) => {
+    const item = document.createElement('div');
+    item.className = `relative ${h.isOriginal ? 'col-span-2 row-span-2' : ''}`;
+    // important for perf when animating filter
+    item.style.willChange = 'filter, transform, opacity';
+
+    item.innerHTML = `
+      <div class="p-3 bg-white/95 border border-[color:var(--tw-prose-borders,theme(colors.border))] rounded-2xl shadow-xl ${h.isOriginal ? 'border-2 border-primary' : ''}">
+        <div class="flex items-center gap-2 mb-2">
+          <div class="${h.isOriginal ? 'w-32 h-32' : 'w-8 h-8'} rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+            <img src="${h.img}" class="w-full h-full rounded-lg object-cover" />
+          </div>
+          <div class="flex-1 min-w-0">
+            <h4 class="font-semibold truncate ${h.isOriginal ? 'text-base' : 'text-xs'}">${h.name}</h4>
+            <p class="text-gray-600 ${h.isOriginal ? 'text-sm' : 'text-xs'}">${h.city}</p>
+          </div>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="font-bold text-primary ${h.isOriginal ? 'text-lg' : 'text-sm'}">${h.score}</span>
+          <span class="text-gray-600 text-xs">${h.reviews_count.toLocaleString("en-US")}</span>
+        </div>
+      </div>`;
+
+    // Compute progressive blur: first = sharp, last = maxBlur.
+    // Keep the "original" featured card sharp regardless of index.
+    const t = total <= 1 ? 0 : i / (total - 1);
+    const targetBlur = h.isOriginal ? 0 : Math.round(t * maxBlur);
+
+    grid.appendChild(item);
+
+    // Nice entrance + settle into final blur.
+    gsap.fromTo(
+      item,
+      {
+        opacity: 0,
+        y: 20,
+        scale: h.isOriginal ? 1 : 0.92,
+        // start slightly less blurred so it “focuses” into its final state
+        filter: `blur(${Math.max(0, targetBlur - 4)}px)`,
+      },
+      {
+        opacity: 1,
+        y: 0,
+        scale: h.isOriginal ? 1 : 1,
+        filter: `blur(${targetBlur}px)`,
+        duration: 0.45,
+        ease: 'power2.out',
+        delay: 0.04 * i,
+      }
+    );
+  });
+
+  gsap.set('#s4-title', { opacity: 0 });
+  gsap.to('#s4-title', { opacity: 1, duration: 0.8, ease: 'power3.out' });
+
+  gsap.set('#s4-stats', { opacity: 0 });
+  gsap.delayedCall(1.0, () =>
+    gsap.to('#s4-stats', { opacity: 1, duration: 0.6, ease: 'power2.out' })
+  );
+}
+
+
+  /* -------- Scene 5 -------- */
+  const inspoBadges = [
+    { badge: "Top 3% Business Hotels in London", x: "15%", y: "20%", delay: 2.0 },
+    { badge: "Exceptional Breakfast Experience",  x: "25%", y: "35%", delay: 2.5 },
+    { badge: "Top 10% Hotel Grounds in City",    x: "35%", y: "50%", delay: 3.0 },
+    { badge: "Top 1% Location Score",            x: "55%", y: "25%", delay: 3.5 },
+    { badge: "Top 5% Service Excellence",        x: "75%", y: "40%", delay: 4.0 },
+    { badge: "Top 2% Historic Properties",       x: "65%", y: "65%", delay: 4.5 },
+    { badge: "Top 8% Royal Heritage",            x: "45%", y: "75%", delay: 5.0 },
+    { badge: "Top 12% Modern Experience",        x: "85%", y: "60%", delay: 5.5 },
+  ];
+
+  function buildScene5() {
+    const bench = document.getElementById('benchmark-grid');
+    const badgesLayer = document.getElementById('s5-badges');
+    bench.innerHTML = '';
+    badgesLayer.innerHTML = '';
+
+    hotelList.slice(0, 21).forEach((h, i) => {
+      const isTop = [0,1,2,5,9,12,19].includes(i);
+      const card = document.createElement('div');
+      card.className =
+        'relative p-3 rounded-2xl border shadow-xl ' +
+        (isTop ? 'bg-gradient-to-br from-accent/10 to-primary/10 border-accent/40'
+               : 'bg-white/70 border-primary/20');
+      card.innerHTML = `
+        <div class="space-y-2">
+          <div class="w-full h-8 bg-gradient-to-br from-primary/20 to-accent/20 rounded flex items-center justify-center"><div class="text-sm"></div></div>
+          <div><h4 class="font-medium text-xs truncate">${h.name}</h4><p class="text-gray-600 text-xs">${h.city}</p></div>
+          <div class="px-2 py-1 rounded-full font-bold text-xs text-center ${isTop ? 'bg-accent text-white' : 'bg-primary text-white'}">${h.score}</div>
+        </div>`;
+      bench.appendChild(card);
+      gsap.from(card, { opacity: 0, scale: 0.86, duration: 0.4, ease: 'power2.out', delay: i * 0.03 });
+    });
+
+    gsap.set('#s5-title', { opacity: 0 });
+    gsap.to('#s5-title', { opacity: 1, duration: 0.8, ease: 'power3.out' });
+    gsap.set('#s5-stats', { opacity: 0 });
+    gsap.delayedCall(1.0, () => gsap.to('#s5-stats', { opacity: 1, duration: 0.6, ease: 'power2.out' }));
+
+    inspoBadges.forEach((item) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'absolute';
+      wrap.style.left = item.x; wrap.style.top = item.y;
+
+      const pill = document.createElement('div');
+      pill.className = 's5-badge';
+      pill.innerHTML = `<span class="mr-1">🏆</span>${item.badge}`;
+      wrap.appendChild(pill);
+      badgesLayer.appendChild(wrap);
+
+      gsap.fromTo(wrap, { opacity: 0, y: 50, scale: 0.8 }, {
+        opacity: 1, y: 0, scale: 1, duration: 0.8, ease: 'back.out(1.8)',
+        delay: item.delay
+      });
+      gsap.to(pill, {
+        y: -5, repeat: -1, yoyo: true, duration: 1.5, ease: 'sine.inOut',
+        delay: item.delay + 1
+      });
+      const shadows = [
+        '0 10px 30px rgba(107,33,168,0.30)',
+        '0 15px 40px rgba(107,33,168,0.40)',
+        '0 10px 30px rgba(107,33,168,0.30)'
+      ];
+      gsap.timeline({ repeat: -1, delay: item.delay + 1 })
+         .to(pill, { boxShadow: shadows[1], duration: 1.0, ease: 'sine.inOut' })
+         .to(pill, { boxShadow: shadows[2], duration: 2.0, ease: 'sine.inOut' });
+    });
+  }
+
+  /* =======================
+     Scene 6 — helpers + switcher (GLOBAL)
+     ======================= */
+  const _showBlock = (el) => {
+    if (!el) return;
+    el.classList.remove('hidden');
+    el.style.display = 'block';
+    el.style.visibility = 'visible';
+  };
+  const _hideBlock = (el) => {
+    if (!el) return;
+    el.classList.add('hidden');
+    el.style.display = 'none';
+    el.style.visibility = 'hidden';
+    gsap.set(el, { clearProps: 'opacity,transform' });
+  };
+  const _barsIn = (scopeEl) => {
+    if (!scopeEl) return;
+    scopeEl.querySelectorAll('[data-bar]').forEach((bar, i) => {
+      const w = bar.getAttribute('data-bar');
+      gsap.fromTo(bar, { width: 0 }, { width: `${w}%`, duration: 0.6, ease: 'power2.out', delay: 0.08 * i });
+    });
+  };
+  const _countTo = (id, toVal, dur = 1.0) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const start = parseInt((el.textContent || '0').replace(/[^\d]/g, '')) || 0;
+    const obj = { v: start };
+    gsap.to(obj, { v: toVal, duration: dur, ease: 'power3.out',
+      onUpdate: () => (el.textContent = Math.floor(obj.v).toLocaleString()) });
+  };
+
+  // global switcher
+  function showScene6Panel(which) {
+    const filters = document.getElementById('panel-filters');
+    const studio  = document.getElementById('panel-studio');
+    const segF = document.getElementById('seg-filters');
+    const segS = document.getElementById('seg-studio');
+    if (!filters || !studio || !segF || !segS) return;
+
+    const front = (which === 'studio') ? studio : filters;
+    const back  = (which === 'studio') ? filters : studio;
+
+    gsap.killTweensOf([front, back]);
+
+    segF.classList.toggle('active', which === 'filters');
+    segS.classList.toggle('active', which === 'studio');
+    segF.setAttribute('aria-selected', which === 'filters' ? 'true' : 'false');
+    segS.setAttribute('aria-selected', which === 'studio' ? 'true' : 'false');
+
+    _hideBlock(back);
+    _showBlock(front);
+
+    gsap.fromTo(front, { opacity: 0, y: 10, scale: 0.99 }, {
+      opacity: 1, y: 0, scale: 1, duration: 0.45, ease: 'power3.out'
+    });
+
+    if (which === 'filters') {
+      _barsIn(front);
+      gsap.from('#filters-results > *', { opacity: 0, y: 10, duration: 0.28, ease: 'power2.out', stagger: 0.05 });
+    } else {
+      _countTo('audience-romantic', 184000, 1.0);
+      _countTo('audience-ski',      126500, 1.0);
+      gsap.from('#panel-studio .creative', { opacity: 0, scale: 0.96, duration: 0.3, ease: 'power2.out', stagger: 0.06 });
+    }
+  }
+
+  // one-time wiring so tabs also work if clicked before the scene intro runs
+  window.addEventListener('DOMContentLoaded', () => {
+    const segF = document.getElementById('seg-filters');
+    const segS = document.getElementById('seg-studio');
+    if (segF) segF.addEventListener('click', () => showScene6Panel('filters'));
+    if (segS) segS.addEventListener('click', () => showScene6Panel('studio'));
+  });
+
+  let s6IntroTl = null;
+
+  function buildScene6() {
+    if (s6IntroTl) { s6IntroTl.kill(); s6IntroTl = null; }
+
+    const filters = document.getElementById('panel-filters');
+    const studio  = document.getElementById('panel-studio');
+
+    _showBlock(filters);
+    _showBlock(studio);     // render once to get dimensions
+    _hideBlock(studio);     // start with studio hidden
+
+    gsap.set('#s6-title', { opacity: 0, y: 6 });
+    gsap.set([filters, studio], { opacity: 0, y: 12, scale: 0.99, filter: 'none', boxShadow: '0 8px 28px rgba(0,0,0,.10)' });
+    filters.querySelectorAll('[data-bar]').forEach(b => gsap.set(b, { width: 0 }));
+
+    s6IntroTl = gsap.timeline();
+    s6IntroTl
+      .to('#s6-title', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, 0.0)
+      .to(filters,     { opacity: 1, y: 0, scale: 1, duration: 0.55, ease: 'power3.out' }, 0.2)
+      .add(() => showScene6Panel('filters'), 0.6);
+
+    const handleTabArrows = (e) => {
+      if (step !== 5) return;
+      if (e.code === 'ArrowLeft')  showScene6Panel('filters');
+      if (e.code === 'ArrowRight') showScene6Panel('studio');
+    };
+    window.addEventListener('keydown', handleTabArrows, { passive: true });
+  }
+
+  /* -------- Scene 1 intro -------- */
+  function playScene1Intro() {
+    gsap.set(['#s1-h1','#s1-p','#s1-ind'], { opacity: 0, y: 0 });
+    gsap.to('#s1-h1', { opacity: 1, duration: 1.0, ease: 'power3.out' });
+    gsap.to('#s1-p',  { opacity: 1, duration: 0.8, delay: 0.4, ease: 'power2.out' });
+    gsap.to('#s1-ind',{ opacity: 1, duration: 0.8, delay: 0.8, ease: 'power2.out' });
+  }
+  playScene1Intro();
+
+  /* -------- State machine -------- */
+  const scenesOrder = ['scene-1','scene-2','scene-2','scene-4','scene-5','scene-6'];
+  let step = 0;
+
+  function setActiveSceneById(id) {
+    document.querySelectorAll('#stage > section').forEach(sec => sec.classList.remove('active'));
+    const el = document.getElementById(id);
+    if (el) el.classList.add('active');
+  }
+
+  function goToStep(next) {
+    next = Math.max(0, Math.min(scenesOrder.length - 1, next));
+    if (next === step) return;
+
+    const leavingId = scenesOrder[step];
+    const enteringId = scenesOrder[next];
+
+    if (leavingId === 'scene-2') {
+      if (!(step === 1 && next === 2)) {
+        destroyHive();
+        resetS23();
+      }
+    }
+
+    step = next;
+    setActiveSceneById(enteringId);
+
+    switch (step) {
+      case 0: playScene1Intro(); break;
+
+      case 1: // S2 idle hive
+        buildHive(); resumeHive();
+        gsap.set(['#s2-overlay','#s2-grain','#s3-portal'], { opacity: 0 });
+        gsap.set('#review-hive', { clearProps:'filter', opacity: 1, scale: 1, y: 0 });
+        break;
+
+      case 2: {
+        const tl = buildS23();
+        if (tl) tl.play(0);
+        break;
+      }
+
+      case 3: buildScene4(); break;
+      case 4: buildScene5(); break;
+      case 5: buildScene6(); break;
+    }
+  }
+
+  // Keyboard controls
+  window.addEventListener('keydown', (e) => {
+    if (e.code === 'ArrowDown' || e.code === 'PageDown' || e.code === 'Enter') {
+      goToStep(step + 1);
+    } else if (e.code === 'ArrowUp' || e.code === 'PageUp' || e.code === 'Backspace') {
+      if (step === 2 && s23tl && s23tl.progress() > 0) {
+        s23tl.reverse();
+        s23tl.eventCallback('onReverseComplete', () => {
+          goToStep(1);
+          s23tl.eventCallback('onReverseComplete', null);
+        });
+      } else {
+        goToStep(step - 1);
+      }
+    }
+  });
+
+  // Initialize
+  setActiveSceneById(scenesOrder[step]);
+</script>
+
+  </body>
+</html>
