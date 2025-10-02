@@ -445,87 +445,149 @@
       <div class="w-full max-w-5xl mx-auto px-4 md:px-6 pt-36">
         <!-- VIBE FILTERS PANEL -->
         <div id="panel-filters" class="card p-6 md:p-8 opacity-0 translate-y-3">
-          <div class="flex items-center justify-between mb-5">
-            <div>
-              <div class="text-xs font-bold text-primary/80 uppercase tracking-wide">Vibe Filters</div>
-              <h3 class="text-2xl md:text-3xl font-extrabold">Find hotels by real guest vibes</h3>
+          <!-- ===== Compact Vibe Filters — 2-Column Demo (radios + CTA) ===== -->
+<div id="vf-2col" class="space-y-4">
+  <!-- Title row -->
+  <div class="flex items-center justify-between">
+    <div class="leading-tight">
+      <div class="text-[11px] font-bold text-primary/80 uppercase tracking-wider">Vibe Filters</div>
+      <h3 class="text-xl md:text-2xl font-extrabold">Find hotels by real guest vibes</h3>
+    </div>
+
+    <!-- CTA to full OTA integration example -->
+    <a href="/ota-integration-demo"
+       class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-accent transition">
+      Open OTA Integration Example →
+    </a>
+  </div>
+
+  <!-- 2-col layout -->
+  <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
+    <!-- Left: Filters -->
+    <aside class="lg:col-span-2 rounded-xl border border-gray-200/70 bg-white/70 p-4 space-y-5">
+      <!-- Traveler -->
+      <fieldset>
+        <legend class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2">Traveler Type</legend>
+        <div class="grid grid-cols-1 gap-2">
+          <label class="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 hover:border-primary/40">
+            <input type="radio" name="vf2-trav" value="any" class="h-4 w-4 text-primary focus:ring-primary" checked />
+            <span class="text-sm font-medium text-gray-800">Any</span>
+          </label>
+          <label class="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 hover:border-primary/40">
+            <input type="radio" name="vf2-trav" value="Business" class="h-4 w-4 text-primary focus:ring-primary" />
+            <span class="text-sm font-medium text-gray-800">Business</span>
+          </label>
+          <label class="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 hover:border-primary/40">
+            <input type="radio" name="vf2-trav" value="Couples" class="h-4 w-4 text-primary focus:ring-primary" />
+            <span class="text-sm font-medium text-gray-800">Couples</span>
+          </label>
+        </div>
+      </fieldset>
+
+      <!-- Property -->
+      <fieldset>
+        <legend class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2">Property Type</legend>
+        <div class="grid grid-cols-1 gap-2">
+          <label class="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 hover:border-primary/40">
+            <input type="radio" name="vf2-type" value="any" class="h-4 w-4 text-primary focus:ring-primary" checked />
+            <span class="text-sm font-medium text-gray-800">Any</span>
+          </label>
+          <label class="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 hover:border-primary/40">
+            <input type="radio" name="vf2-type" value="Luxury" class="h-4 w-4 text-primary focus:ring-primary" />
+            <span class="text-sm font-medium text-gray-800">Luxury</span>
+          </label>
+          <label class="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 hover:border-primary/40">
+            <input type="radio" name="vf2-type" value="Boutique" class="h-4 w-4 text-primary focus:ring-primary" />
+            <span class="text-sm font-medium text-gray-800">Boutique</span>
+          </label>
+        </div>
+      </fieldset>
+    </aside>
+
+    <!-- Right: Results -->
+    <main class="lg:col-span-3">
+      <!-- Cards -->
+      <div id="vf2-results" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Hotel -->
+        <article class="vf2-hotel mini-card p-3 flex items-center gap-3"
+          data-type="Luxury" data-travelers="Business,Couples">
+          <img class="w-16 h-16 rounded-md object-cover border"
+               src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Langham_london.jpg/1920px-Langham_london.jpg"
+               alt="The Langham London" />
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2">
+              <h4 class="font-semibold text-sm text-gray-900 truncate">The Langham London</h4>
+              <span class="px-1.5 py-0.5 rounded-md bg-primary text-white text-[10px] font-bold">4.8</span>
             </div>
-            <div class="hidden md:block text-xs text-gray-500">Powered by TrustYou MetaReview</div>
-          </div>
-
-          <!-- Controls -->
-          <div class="grid grid-cols-1 gap-6 mb-6">
-            <div class="space-y-5">
-              <div>
-                <div class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2">Traveler Type</div>
-                <div class="flex flex-wrap gap-2">
-                  <button class="chip" aria-selected="true">Business</button>
-                  <button class="chip">Couples</button>
-                  <button class="chip">Family</button>
-                  <button class="chip">Solo</button>
-                </div>
-              </div>
-
-              <div>
-                <div class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2">Ambience</div>
-                <div class="flex flex-wrap gap-2">
-                  <button class="chip">Romantic</button>
-                  <button class="chip">Quiet</button>
-                  <button class="chip">Trendy</button>
-                  <button class="chip">Historic</button>
-                  <button class="chip">Wellness</button>
-                  <button class="chip">Ski</button>
-                </div>
-              </div>
-
-              <div>
-                <div class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2">Category Minimums</div>
-                <div class="space-y-3">
-                  <div>
-                    <div class="flex justify-between text-xs">
-                      <span>Cleanliness</span><span class="text-primary font-bold">4.5+</span>
-                    </div>
-                    <div class="bg-gray-100 rounded-full h-2">
-                      <div class="bg-primary h-2 rounded-full w-0" data-bar="86"></div>
-                    </div>
-                  </div>
-                  <div>
-                    <div class="flex justify-between text-xs">
-                      <span>Service</span><span class="text-primary font-bold">4.2+</span>
-                    </div>
-                    <div class="bg-gray-100 rounded-full h-2">
-                      <div class="bg-primary h-2 rounded-full w-0" data-bar="84"></div>
-                    </div>
-                  </div>
-                  <div>
-                    <div class="flex justify-between text-xs">
-                      <span>Comfort</span><span class="text-primary font-bold">4.3+</span>
-                    </div>
-                    <div class="bg-gray-100 rounded-full h-2">
-                      <div class="bg-primary h-2 rounded-full w-0" data-bar="85"></div>
-                    </div>
-                  </div>
-                  <div>
-                    <div class="flex justify-between text-xs">
-                      <span>Location</span><span class="text-primary font-bold">4.0+</span>
-                    </div>
-                    <div class="bg-gray-100 rounded-full h-2">
-                      <div class="bg-primary h-2 rounded-full w-0" data-bar="82"></div>
-                    </div>
-                  </div>
-                  <div>
-                    <div class="flex justify-between text-xs">
-                      <span>Breakfast</span><span class="text-primary font-bold">4.5+</span>
-                    </div>
-                    <div class="bg-gray-100 rounded-full h-2">
-                      <div class="bg-primary h-2 rounded-full w-0" data-bar="86"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            <div class="text-[11px] text-gray-600 mt-0.5">📍 London, United Kingdom</div>
+            <div class="mt-1 flex flex-wrap gap-1.5">
+              <span class="chip">Luxury</span><span class="chip">Business</span><span class="chip">Couples</span>
             </div>
-
           </div>
+        </article>
+
+        <article class="vf2-hotel mini-card p-3 flex items-center gap-3"
+          data-type="Luxury" data-travelers="Couples">
+          <img class="w-16 h-16 rounded-md object-cover border"
+               src="https://lh3.googleusercontent.com/p/AF1QipMcAFofAkmAzxCXHdsnZk1GLj_lWV1oiyLnFNQt=s1360-w1360-h1020-rw"
+               alt="Claridge’s" />
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2">
+              <h4 class="font-semibold text-sm text-gray-900 truncate">Claridge’s</h4>
+              <span class="px-1.5 py-0.5 rounded-md bg-primary text-white text-[10px] font-bold">4.6</span>
+            </div>
+            <div class="text-[11px] text-gray-600 mt-0.5">📍 London, United Kingdom</div>
+            <div class="mt-1 flex flex-wrap gap-1.5">
+              <span class="chip">Luxury</span><span class="chip">Couples</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="vf2-hotel mini-card p-3 flex items-center gap-3"
+          data-type="Boutique" data-travelers="Business,Couples">
+          <img class="w-16 h-16 rounded-md object-cover border"
+               src="https://static.prod.r53.tablethotels.com/media/hotels/slideshow_images_staged/large/1104741.jpg"
+               alt="The Hoxton" />
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2">
+              <h4 class="font-semibold text-sm text-gray-900 truncate">The Hoxton</h4>
+              <span class="px-1.5 py-0.5 rounded-md bg-primary text-white text-[10px] font-bold">4.2</span>
+            </div>
+            <div class="text-[11px] text-gray-600 mt-0.5">📍 London, United Kingdom</div>
+            <div class="mt-1 flex flex-wrap gap-1.5">
+              <span class="chip">Boutique</span><span class="chip">Business</span><span class="chip">Couples</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="vf2-hotel mini-card p-3 flex items-center gap-3"
+          data-type="Boutique" data-travelers="Couples">
+          <img class="w-16 h-16 rounded-md object-cover border"
+               src="https://cf.bstatic.com/xdata/images/hotel/max1024x768/77003227.jpg?k=e6473a8ebe28f9dbb721af8739d839e58e8baa79fc4b6dea10e717b8c617ca04&o=&hp=1"
+               alt="The Zetter Townhouse" />
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2">
+              <h4 class="font-semibold text-sm text-gray-900 truncate">The Zetter Townhouse</h4>
+              <span class="px-1.5 py-0.5 rounded-md bg-primary text-white text-[10px] font-bold">4.1</span>
+            </div>
+            <div class="text-[11px] text-gray-600 mt-0.5">📍 London, United Kingdom</div>
+            <div class="mt-1 flex flex-wrap gap-1.5">
+              <span class="chip">Boutique</span><span class="chip">Couples</span>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <!-- Empty -->
+      <div id="vf2-empty" class="hidden mt-4 rounded-lg border border-dashed border-gray-300 bg-gray-50/70 p-5 text-center">
+        <div class="text-base mb-1">🔍</div>
+        <div class="font-semibold text-gray-800">No matches</div>
+        <div class="text-xs text-gray-600">Try a different combination.</div>
+      </div>
+    </main>
+  </div>
+</div>
+
         </div>
 
         <!-- CAMPAIGN FOUNDRY PANEL -->
@@ -2106,6 +2168,49 @@
           </div>`;
       });
     }
+  })();
+</script>
+
+<script>
+  (function vfTwoColRadios() {
+    const root = document.getElementById('vf-2col');
+    if (!root) return;
+
+    const cards = Array.from(root.querySelectorAll('.vf2-hotel'));
+    const empty = root.querySelector('#vf2-empty');
+
+    let selTrav = 'any';
+    let selType = 'any';
+
+    function matches(card) {
+      const type  = (card.getAttribute('data-type') || '').trim();
+      const travs = (card.getAttribute('data-travelers') || '').split(',').map(s => s.trim());
+      const okType = (selType === 'any' || selType === type);
+      const okTrav = (selTrav === 'any' || travs.includes(selTrav));
+      return okType && okTrav;
+    }
+
+    function render() {
+      let shown = 0;
+      cards.forEach(c => {
+        const ok = matches(c);
+        c.style.display = ok ? '' : 'none';
+        shown += ok ? 1 : 0;
+      });
+      empty.classList.toggle('hidden', shown !== 0);
+    }
+
+    // Radios: Traveler
+    root.querySelectorAll('input[name="vf2-trav"]').forEach(r => {
+      r.addEventListener('change', () => { selTrav = r.value; render(); });
+    });
+
+    // Radios: Property Type
+    root.querySelectorAll('input[name="vf2-type"]').forEach(r => {
+      r.addEventListener('change', () => { selType = r.value; render(); });
+    });
+
+    render();
   })();
 </script>
 
