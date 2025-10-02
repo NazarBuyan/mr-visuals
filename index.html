@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>MetaReview Overview</title>
 
+    <!-- Flowbite (CDN) -->
+<link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.css" rel="stylesheet" />
+<script defer src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>
+
+
     <!-- Tailwind (CDN) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -139,6 +144,26 @@
         background: rgba(109,74,255,0.06); color:#4C1D95;
       }
       .mini-card { background: rgba(255,255,255,0.85); border:1px solid hsl(240 5% 84%); border-radius:.75rem; box-shadow: 0 10px 24px rgba(0,0,0,.06); }
+
+      .meta-modal-backdrop { background: radial-gradient(120% 100% at 50% 60%, rgba(0,0,0,.45), rgba(0,0,0,.65)); }
+.meta-modal-card {
+  background: rgba(255,255,255,.94);
+  border: 1px solid hsl(240 5% 84%);
+  border-radius: 1rem;
+  box-shadow: 0 30px 80px rgba(0,0,0,.25);
+  backdrop-filter: blur(10px);
+}
+.meta-chip {
+  padding:.35rem .6rem; border-radius:9999px; font-size:.7rem; font-weight:700;
+  border: 1px solid rgba(109,74,255,0.25);
+  background: rgba(109,74,255,0.06); color:#4C1D95; white-space:nowrap;
+}
+.meta-section {
+  border: 1px solid hsl(240 5% 84%);
+  background: rgba(255,255,255,.9);
+  border-radius: .85rem;
+}
+.meta-section h4 { font-weight:800; letter-spacing:.01em; }
     </style>
   </head>
   <body class="min-h-screen bg-background text-gray-900 overflow-x-hidden">
@@ -361,14 +386,44 @@
         </div>
 
         <div id="s5-stats" class="mt-10 flex items-center justify-center opacity-0">
-          <div class="bg-white/95 glass border border-purple-300 rounded-full px-8 py-4 shadow-xl flex items-center gap-8 text-center">
-            <div><div class="text-2xl font-bold text-accent">55</div><div class="text-xs text-gray-600">Recognition Badges</div></div>
-            <div class="w-px h-8 bg-gray-200"></div>
-            <div><div class="text-2xl font-bold text-primary">160+</div><div class="text-xs text-gray-600">Categories</div></div>
-            <div class="w-px h-8 bg-gray-200"></div>
-            <div><div class="text-2xl font-bold text-accent">24 month</div><div class="text-xs text-gray-600">Data freshness</div></div>
-          </div>
-        </div>
+  <div class="bg-white/95 glass border border-purple-300 rounded-full px-8 py-4 shadow-xl flex items-center gap-8 text-center cursor-pointer"
+  data-modal-target="categoriesModal"
+      data-modal-toggle="categoriesModal"
+  >
+    <!-- Pill 1: Recognition Badges (opens modal) -->
+    <button
+      type="button"
+      class="focus:outline-none"
+      aria-label="Open categories and badges modal">
+      <div>
+        <div class="text-2xl font-bold text-accent">55</div>
+        <div class="text-xs text-gray-600">Recognition Badges</div>
+      </div>
+    </button>
+
+    <div class="w-px h-8 bg-gray-200"></div>
+
+    <!-- Pill 2: Categories (opens modal) -->
+    <button
+      type="button"
+      class="focus:outline-none"
+      aria-label="Open categories and badges modal">
+      <div>
+        <div class="text-2xl font-bold text-primary">160+</div>
+        <div class="text-xs text-gray-600">Categories</div>
+      </div>
+    </button>
+
+    <div class="w-px h-8 bg-gray-200"></div>
+
+    <!-- Pill 3: Data freshness (static) -->
+    <div>
+      <div class="text-2xl font-bold text-accent">24 month</div>
+      <div class="text-xs text-gray-600">Data freshness</div>
+    </div>
+  </div>
+</div>
+
       </div>
     </section>
 
@@ -519,6 +574,644 @@
     </section>
 
   </div>
+
+  <!-- =========================
+     CATEGORIES MODAL (Tailwind + Flowbite only)
+     Opens via: data-modal-target="categoriesModal" data-modal-toggle="categoriesModal"
+     ========================= -->
+<div id="categoriesModal"
+     class="fixed top-0 left-0 right-0 z-[100] hidden p-4 md:inset-0 h-[100dvh]"
+     aria-hidden="true" aria-modal="true" role="dialog">
+  <!-- Backdrop (click to close) -->
+  <div class="fixed inset-0 bg-black/50" data-modal-hide="categoriesModal"></div>
+
+  <!-- Centering wrapper -->
+  <div class="relative mx-auto w-full max-w-7xl">
+    <!-- Panel -->
+    <div class="mt-6 overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-[0_30px_80px_rgba(0,0,0,.15)]">
+
+      <!-- Header -->
+      <div class="px-6 md:px-8 py-5 border-b border-gray-200 bg-gradient-to-r from-primary/5 via-white to-accent/5 flex justify-between ">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <div class="text-[11px] font-bold tracking-widest uppercase text-primary/80">TrustYou MetaReview</div>
+            <h3 class="mt-1 text-2xl md:text-3xl font-extrabold text-gray-900">What We Analyze</h3>
+            <p class="mt-1 text-sm text-gray-600">All guest-review categories & eligible badges</p>
+          </div>
+        </div>
+
+        <!-- Tabs (Flowbite) -->
+        <div class="mt-4">
+          <ul class="segmented p-1 inline-flex w-full md:w-auto gap-1" id="catTabs" data-tabs-toggle="#catTabsContent" role="tablist">
+            <li class="me-1" role="presentation">
+              <!-- NOTE: removed hardcoded .active to avoid double highlight -->
+              <button class="seg-btn px-4 py-2" id="tab-all" data-tabs-target="#tab-all-panel" type="button" role="tab" aria-controls="tab-all-panel" aria-selected="true">
+                All Categories
+              </button>
+            </li>
+            <li role="presentation">
+              <button class="seg-btn px-4 py-2" id="tab-badges" data-tabs-target="#tab-badges-panel" type="button" role="tab" aria-controls="tab-badges-panel" aria-selected="false">
+                Badges
+              </button>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Body (scrollable content) -->
+      <div id="modalScroll"
+           class="px-5 md:px-8 py-6 max-h-[calc(100dvh-10.5rem)] overflow-y-auto overscroll-contain scroll-smooth">
+        <div id="catTabsContent">
+          <!-- ================= TAB: ALL CATEGORIES ================= -->
+          <div id="tab-all-panel" role="tabpanel" aria-labelledby="tab-all">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              <!-- LEFT INDEX -->
+              <aside class="lg:col-span-3">
+                <!-- Mobile quick-jump -->
+                <div class="lg:hidden mb-4 -mx-1 flex gap-2 overflow-x-auto no-scrollbar">
+                  <a href="#sec-vibes"      class="inline-flex items-center rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary whitespace-nowrap">Vibes & Styles</a>
+                  <a href="#sec-experience" class="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 whitespace-nowrap">Experience</a>
+                  <a href="#sec-food"       class="inline-flex items-center rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-700 whitespace-nowrap">Food & Drink</a>
+                  <a href="#sec-practical"  class="inline-flex items-center rounded-full border border-purple-200 bg-purple-50 px-3 py-1 text-xs font-semibold text-purple-700 whitespace-nowrap">Practicalities</a>
+                  <a href="#sec-wellness"   class="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700 whitespace-nowrap">Wellness & Leisure</a>
+                  <a href="#sec-sustain"    class="inline-flex items-center rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-700 whitespace-nowrap">Sustainability</a>
+                </div>
+
+                <!-- Desktop sticky nav -->
+                <nav class="hidden lg:block sticky rounded-2xl border border-gray-200 bg-white shadow-sm p-4 py-3 top-4">
+                  <div class="text-[11px] font-semibold tracking-widest text-gray-500 uppercase mb-2">Quick jump</div>
+                  <ul class="space-y-2 text-sm">
+                    <li>
+                      <a href="#sec-vibes" class="flex items-center justify-between rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-primary font-semibold hover:bg-primary/10">
+                        Vibes & Styles <span>💫</span>
+                      </a>
+                    </li>
+                    <li>
+                      <a href="#sec-experience" class="flex items-center justify-between rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-emerald-700 font-semibold hover:bg-emerald-100">
+                        Experience <span>🛏️</span>
+                      </a>
+                      <ul class="mt-2 pl-3 space-y-1 text-gray-700">
+                        <li><a href="#cat-service"     class="block px-2 py-1 rounded hover:bg-gray-50">Service</a></li>
+                        <li><a href="#cat-cleanliness" class="block px-2 py-1 rounded hover:bg-gray-50">Cleanliness</a></li>
+                        <li><a href="#cat-room"        class="block px-2 py-1 rounded hover:bg-gray-50">Room</a></li>
+                        <li><a href="#cat-comfort"     class="block px-2 py-1 rounded hover:bg-gray-50">Comfort</a></li>
+                      </ul>
+                    </li>
+                    <li>
+                      <a href="#sec-food" class="flex items-center justify-between rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-orange-700 font-semibold hover:bg-orange-100">
+                        Food & Drink <span>🍽️</span>
+                      </a>
+                      <ul class="mt-2 pl-3 space-y-1 text-gray-700">
+                        <li><a href="#cat-breakfast" class="block px-2 py-1 rounded hover:bg-gray-50">Breakfast</a></li>
+                        <li><a href="#cat-food"      class="block px-2 py-1 rounded hover:bg-gray-50">Food & Dining</a></li>
+                        <li><a href="#cat-bar"       class="block px-2 py-1 rounded hover:bg-gray-50">Bar</a></li>
+                      </ul>
+                    </li>
+                    <li>
+                      <a href="#sec-practical" class="flex items-center justify-between rounded-lg border border-purple-200 bg-purple-50 px-3 py-2 text-purple-700 font-semibold hover:bg-purple-100">
+                        Practicalities <span>📍</span>
+                      </a>
+                      <ul class="mt-2 pl-3 space-y-1 text-gray-700">
+                        <li><a href="#cat-location"  class="block px-2 py-1 rounded hover:bg-gray-50">Location</a></li>
+                        <li><a href="#cat-amenities" class="block px-2 py-1 rounded hover:bg-gray-50">Amenities</a></li>
+                        <li><a href="#cat-wifi"      class="block px-2 py-1 rounded hover:bg-gray-50">WiFi</a></li>
+                        <li><a href="#cat-value"     class="block px-2 py-1 rounded hover:bg-gray-50">Value</a></li>
+                      </ul>
+                    </li>
+                    <li>
+                      <a href="#sec-wellness" class="flex items-center justify-between rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-sky-700 font-semibold hover:bg-sky-100">
+                        Wellness & Leisure <span>🧖</span>
+                      </a>
+                      <ul class="mt-2 pl-3 space-y-1 text-gray-700">
+                        <li><a href="#cat-wellness" class="block px-2 py-1 rounded hover:bg-gray-50">Wellness Area</a></li>
+                        <li><a href="#cat-pool"     class="block px-2 py-1 rounded hover:bg-gray-50">Pool</a></li>
+                        <li><a href="#cat-beach"    class="block px-2 py-1 rounded hover:bg-gray-50">Beach</a></li>
+                      </ul>
+                    </li>
+                    <li>
+                      <a href="#sec-sustain" class="flex items-center justify-between rounded-lg border border-teal-200 bg-teal-50 px-3 py-2 text-teal-700 font-semibold hover:bg-teal-100">
+                        Sustainability <span>♻️</span>
+                      </a>
+                    </li>
+                  </ul>
+                </nav>
+              </aside>
+
+              <!-- RIGHT CONTENT (same as your current design) -->
+              <section class="lg:col-span-9">
+                <!-- ===== VIBES & STYLES ===== -->
+                <div id="sec-vibes" class="mb-6 scroll-mt-24">
+                  <div class="rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3 mb-4">
+                    <div class="text-xs font-semibold tracking-widest text-primary/80 uppercase">Vibes & Styles</div>
+                    <div class="text-sm text-gray-600">How a place feels and how it’s positioned</div>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Vibe -->
+                    <article id="cat-vibe" class="rounded-2xl border border-gray-200 bg-white p-5">
+                      <header class="mb-3 flex items-center gap-2">
+                        <span class="text-xl">💫</span><h4 class="font-bold text-gray-900">Vibe</h4>
+                      </header>
+                      <div class="flex flex-wrap gap-2">
+                        <span class="meta-chip">Designer</span>
+                        <span class="meta-chip">Friendly Atmosphere</span>
+                        <span class="meta-chip">Luxurious</span>
+                        <span class="meta-chip">Modern</span>
+                        <span class="meta-chip">Entrance Area</span>
+                      </div>
+                    </article>
+
+                    <!-- Hotel Styles -->
+                    <article id="cat-styles" class="rounded-2xl border border-gray-200 bg-white p-5">
+                      <header class="mb-3 flex items-center gap-2">
+                        <span class="text-xl">🏷️</span><h4 class="font-bold text-gray-900">Hotel Styles</h4>
+                      </header>
+                      <div class="flex flex-wrap gap-2">
+                        <span class="meta-chip">Luxury</span>
+                        <span class="meta-chip">Boutique</span>
+                        <span class="meta-chip">Business</span>
+                        <span class="meta-chip">Family</span>
+                        <span class="meta-chip">Resort</span>
+                        <span class="meta-chip">Wellness</span>
+                        <span class="meta-chip">Eco-friendly</span>
+                        <span class="meta-chip">Airport</span>
+                        <span class="meta-chip">City</span>
+                        <span class="meta-chip">Beach</span>
+                        <span class="meta-chip">Winter Sports</span>
+                        <span class="meta-chip">Hostel / Midscale / Economy</span>
+                      </div>
+                    </article>
+                  </div>
+                </div>
+
+                <!-- ===== EXPERIENCE ===== -->
+                <div id="sec-experience" class="mb-6 scroll-mt-24">
+                  <div class="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 mb-4">
+                    <div class="text-xs font-semibold tracking-widest text-emerald-700 uppercase">Experience</div>
+                    <div class="text-sm text-emerald-800">Sleep quality, service, cleanliness</div>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Service -->
+                    <article id="cat-service" class="rounded-2xl border border-gray-200 bg-white p-5">
+                      <header class="mb-3 flex items-center gap-2">
+                        <span class="text-xl">🤝</span><h4 class="font-bold text-gray-900">Service</h4>
+                      </header>
+                      <div class="flex flex-wrap gap-2">
+                        <span class="meta-chip">Reception</span>
+                        <span class="meta-chip">Housekeeping</span>
+                        <span class="meta-chip">Professionalism</span>
+                        <span class="meta-chip">Friendliness</span>
+                        <span class="meta-chip">Room Service</span>
+                        <span class="meta-chip">Restaurant Service</span>
+                        <span class="meta-chip">Concierge</span>
+                        <span class="meta-chip">Laundry</span>
+                        <span class="meta-chip">Childcare</span>
+                        <span class="meta-chip">Valet</span>
+                        <span class="meta-chip">Shuttle</span>
+                        <span class="meta-chip">Tour Guide</span>
+                        <span class="meta-chip">Security</span>
+                      </div>
+                    </article>
+
+                    <!-- Cleanliness -->
+                    <article id="cat-cleanliness" class="rounded-2xl border border-gray-200 bg-white p-5">
+                      <header class="mb-3 flex items-center gap-2">
+                        <span class="text-xl">🧼</span><h4 class="font-bold text-gray-900">Cleanliness</h4>
+                      </header>
+                      <div class="flex flex-wrap gap-2">
+                        <span class="meta-chip">Rooms</span>
+                        <span class="meta-chip">Bathrooms</span>
+                        <span class="meta-chip">Hotel Areas</span>
+                        <span class="meta-chip">Dining Area</span>
+                        <span class="meta-chip">Pool</span>
+                        <span class="meta-chip">Wellness Area</span>
+                      </div>
+                    </article>
+
+                    <!-- Room -->
+                    <article id="cat-room" class="rounded-2xl border border-gray-200 bg-white p-5">
+                      <header class="mb-3 flex items-center gap-2">
+                        <span class="text-xl">🛏️</span><h4 class="font-bold text-gray-900">Room</h4>
+                      </header>
+                      <div class="flex flex-wrap gap-2">
+                        <span class="meta-chip">Bathroom</span>
+                        <span class="meta-chip">Beds</span>
+                        <span class="meta-chip">Room Size</span>
+                        <span class="meta-chip">Shower</span>
+                        <span class="meta-chip">Balcony</span>
+                        <span class="meta-chip">Furniture</span>
+                        <span class="meta-chip">Kitchenette</span>
+                        <span class="meta-chip">Minibar</span>
+                        <span class="meta-chip">TV</span>
+                        <span class="meta-chip">View</span>
+                        <span class="meta-chip">Maintenance</span>
+                        <span class="meta-chip">Air Conditioning</span>
+                        <span class="meta-chip">Family Rooms</span>
+                      </div>
+                    </article>
+
+                    <!-- Comfort -->
+                    <article id="cat-comfort" class="rounded-2xl border border-gray-200 bg-white p-5">
+                      <header class="mb-3 flex items-center gap-2">
+                        <span class="text-xl">🌙</span><h4 class="font-bold text-gray-900">Comfort</h4>
+                      </header>
+                      <div class="flex flex-wrap gap-2">
+                        <span class="meta-chip">Noise Level</span>
+                        <span class="meta-chip">Beds</span>
+                        <span class="meta-chip">Room Size</span>
+                        <span class="meta-chip">Air Conditioning</span>
+                        <span class="meta-chip">Bathroom Size</span>
+                      </div>
+                    </article>
+                  </div>
+                </div>
+
+                <!-- ===== FOOD & DRINK ===== -->
+                <div id="sec-food" class="mb-6 scroll-mt-24">
+                  <div class="rounded-2xl border border-orange-200 bg-orange-50 px-4 py-3 mb-4">
+                    <div class="text-xs font-semibold tracking-widest text-orange-700 uppercase">Food & Drink</div>
+                    <div class="text-sm text-orange-800">Breakfast, dining, bar</div>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Breakfast -->
+                    <article id="cat-breakfast" class="rounded-2xl border border-gray-200 bg-white p-5">
+                      <header class="mb-3 flex items-center gap-2">
+                        <span class="text-xl">🥐</span><h4 class="font-bold text-gray-900">Breakfast</h4>
+                      </header>
+                      <div class="flex flex-wrap gap-2">
+                        <span class="meta-chip">Quality</span>
+                        <span class="meta-chip">Selection</span>
+                        <span class="meta-chip">Value</span>
+                      </div>
+                    </article>
+
+                    <!-- Food & Dining -->
+                    <article id="cat-food" class="rounded-2xl border border-gray-200 bg-white p-5">
+                      <header class="mb-3 flex items-center gap-2">
+                        <span class="text-xl">🍽️</span><h4 class="font-bold text-gray-900">Food & Dining</h4>
+                      </header>
+                      <div class="flex flex-wrap gap-2">
+                        <span class="meta-chip">Menu</span>
+                        <span class="meta-chip">Dining Experience</span>
+                        <span class="meta-chip">Seafood</span>
+                        <span class="meta-chip">Steak & Meat</span>
+                        <span class="meta-chip">Pasta & Pizza</span>
+                        <span class="meta-chip">Vegetarian & Vegan</span>
+                        <span class="meta-chip">Snacks & Desserts</span>
+                        <span class="meta-chip">Gluten-free & Special Diets</span>
+                        <span class="meta-chip">Pricing</span>
+                      </div>
+                    </article>
+
+                    <!-- Bar -->
+                    <article id="cat-bar" class="rounded-2xl border border-gray-200 bg-white p-5">
+                      <header class="mb-3 flex items-center gap-2">
+                        <span class="text-xl">🍸</span><h4 class="font-bold text-gray-900">Bar</h4>
+                      </header>
+                      <div class="flex flex-wrap gap-2">
+                        <span class="meta-chip">Drinks</span>
+                        <span class="meta-chip">Service</span>
+                        <span class="meta-chip">Pricing</span>
+                      </div>
+                    </article>
+                  </div>
+                </div>
+
+                <!-- ===== PRACTICALITIES ===== -->
+                <div id="sec-practical" class="mb-6 scroll-mt-24">
+                  <div class="rounded-2xl border border-purple-200 bg-purple-50 px-4 py-3 mb-4">
+                    <div class="text-xs font-semibold tracking-widest text-purple-700 uppercase">Practicalities</div>
+                    <div class="text-sm text-purple-800">Location, amenities, WiFi, value</div>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Location -->
+                    <article id="cat-location" class="rounded-2xl border border-gray-200 bg-white p-5">
+                      <header class="mb-3 flex items-center gap-2">
+                        <span class="text-xl">📍</span><h4 class="font-bold text-gray-900">Location</h4>
+                      </header>
+                      <div class="flex flex-wrap gap-2">
+                        <span class="meta-chip">City Centre</span>
+                        <span class="meta-chip">Public Transport</span>
+                        <span class="meta-chip">Airport</span>
+                        <span class="meta-chip">Train Station</span>
+                        <span class="meta-chip">Parking</span>
+                        <span class="meta-chip">Shopping</span>
+                        <span class="meta-chip">Restaurants & Bars</span>
+                        <span class="meta-chip">Sightseeing</span>
+                        <span class="meta-chip">Beach / Winter Sports Access</span>
+                        <span class="meta-chip">Accessibility by Car</span>
+                      </div>
+                    </article>
+
+                    <!-- Amenities -->
+                    <article id="cat-amenities" class="rounded-2xl border border-gray-200 bg-white p-5">
+                      <header class="mb-3 flex items-center gap-2">
+                        <span class="text-xl">🏨</span><h4 class="font-bold text-gray-900">Amenities</h4>
+                      </header>
+                      <div class="flex flex-wrap gap-2">
+                        <span class="meta-chip">Hotel Building</span>
+                        <span class="meta-chip">Architecture</span>
+                        <span class="meta-chip">Entrance Area</span>
+                        <span class="meta-chip">Elevator</span>
+                        <span class="meta-chip">Kids Facilities</span>
+                        <span class="meta-chip">Shared Facilities</span>
+                        <span class="meta-chip">Handicap Accessible</span>
+                        <span class="meta-chip">Grounds / Terrace</span>
+                        <span class="meta-chip">Outdoor Sports</span>
+                        <span class="meta-chip">Golf</span>
+                        <span class="meta-chip">Ski Storage</span>
+                        <span class="meta-chip">Smoking Area</span>
+                        <span class="meta-chip">Water Park</span>
+                      </div>
+                    </article>
+
+                    <!-- WiFi -->
+                    <article id="cat-wifi" class="rounded-2xl border border-gray-200 bg-white p-5">
+                      <header class="mb-3 flex items-center gap-2">
+                        <span class="text-xl">📶</span><h4 class="font-bold text-gray-900">WiFi</h4>
+                      </header>
+                      <div class="flex flex-wrap gap-2">
+                        <span class="meta-chip">Quality</span>
+                        <span class="meta-chip">Cost</span>
+                      </div>
+                    </article>
+
+                    <!-- Value -->
+                    <article id="cat-value" class="rounded-2xl border border-gray-200 bg-white p-5">
+                      <header class="mb-3 flex items-center gap-2">
+                        <span class="text-xl">💸</span><h4 class="font-bold text-gray-900">Value</h4>
+                      </header>
+                      <div class="flex flex-wrap gap-2">
+                        <span class="meta-chip">Overall Value</span>
+                        <span class="meta-chip">Breakfast Value</span>
+                        <span class="meta-chip">Bar Value</span>
+                        <span class="meta-chip">Dining Value</span>
+                        <span class="meta-chip">WiFi Value</span>
+                      </div>
+                    </article>
+                  </div>
+                </div>
+
+                <!-- ===== WELLNESS & LEISURE ===== -->
+                <div id="sec-wellness" class="mb-6 scroll-mt-24">
+                  <div class="rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 mb-4">
+                    <div class="text-xs font-semibold tracking-widest text-sky-700 uppercase">Wellness & Leisure</div>
+                    <div class="text-sm text-sky-800">Wellness, pool, beach</div>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Wellness Area -->
+                    <article id="cat-wellness" class="rounded-2xl border border-gray-200 bg-white p-5">
+                      <header class="mb-3 flex items-center gap-2">
+                        <span class="text-xl">🧖</span><h4 class="font-bold text-gray-900">Wellness Area</h4>
+                      </header>
+                      <div class="flex flex-wrap gap-2">
+                        <span class="meta-chip">Fitness Area</span>
+                        <span class="meta-chip">Sauna</span>
+                        <span class="meta-chip">Wellness Staff</span>
+                        <span class="meta-chip">Cleanliness</span>
+                      </div>
+                    </article>
+
+                    <!-- Pool -->
+                    <article id="cat-pool" class="rounded-2xl border border-gray-200 bg-white p-5">
+                      <header class="mb-3 flex items-center gap-2">
+                        <span class="text-xl">🏊</span><h4 class="font-bold text-gray-900">Pool</h4>
+                      </header>
+                      <div class="flex flex-wrap gap-2">
+                        <span class="meta-chip">Cleanliness</span>
+                      </div>
+                    </article>
+
+                    <!-- Beach -->
+                    <article id="cat-beach" class="rounded-2xl border border-gray-200 bg-white p-5">
+                      <header class="mb-3 flex items-center gap-2">
+                        <span class="text-xl">🏖️</span><h4 class="font-bold text-gray-900">Beach</h4>
+                      </header>
+                      <div class="flex flex-wrap gap-2">
+                        <span class="meta-chip">Cleanliness</span>
+                        <span class="meta-chip">Sports</span>
+                      </div>
+                    </article>
+                  </div>
+                </div>
+
+                <!-- ===== SUSTAINABILITY ===== -->
+                <div id="sec-sustain" class="mb-2 scroll-mt-24">
+                  <div class="rounded-2xl border border-teal-200 bg-teal-50 px-4 py-3 mb-4">
+                    <div class="text-xs font-semibold tracking-widest text-teal-700 uppercase">Sustainability</div>
+                    <div class="text-sm text-teal-800">Efficient, responsible operations</div>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <article id="cat-sustainability" class="rounded-2xl border border-gray-200 bg-white p-5">
+                      <header class="mb-3 flex items-center gap-2">
+                        <span class="text-xl">♻️</span><h4 class="font-bold text-gray-900">Sustainability</h4>
+                      </header>
+                      <div class="flex flex-wrap gap-2">
+                        <span class="meta-chip">Eco-friendly Hotel</span>
+                        <span class="meta-chip">Energy Efficiency</span>
+                        <span class="meta-chip">Sustainable Sourcing</span>
+                        <span class="meta-chip">Waste Reduction</span>
+                        <span class="meta-chip">Water Conservation</span>
+                      </div>
+                    </article>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+
+          <!-- ================= TAB: BADGES ================= -->
+          <div id="tab-badges-panel" class="hidden" role="tabpanel" aria-labelledby="tab-badges">
+  <!-- Section header -->
+  <div class="rounded-2xl border border-purple-200/50 bg-purple-50/60 px-4 py-3 mb-5">
+    <div class="text-xs font-semibold tracking-widest text-purple-700 uppercase">Eligible for Recognition Badges</div>
+    <div class="text-sm text-purple-800/90">Grouped by theme for quicker scanning</div>
+  </div>
+
+  <!-- ===== GROUP: Hotel Types & Styles ===== -->
+  <div class="rounded-xl border border-gray-100 bg-white/70 px-4 py-3 mb-5 shadow-sm/0">
+    <div class="flex items-center justify-between gap-2 mb-3">
+      <div class="flex items-center gap-2">
+        <span class="text-base">🏷️</span>
+        <h4 class="font-extrabold tracking-tight">Hotel Types & Styles</h4>
+      </div>
+      <span class="meta-chip !bg-primary/10 !border-primary/20 !text-primary">19</span>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <!-- types -->
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4">
+        <div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        <div class="flex items-center gap-3 relative">
+          <div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">👑</div>
+          <div class="min-w-0"><div class="font-semibold truncate">Luxury Hotel</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div>
+        </div>
+      </div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">🎀</div><div class="min-w-0"><div class="font-semibold truncate">Boutique Hotel</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">👔</div><div class="min-w-0"><div class="font-semibold truncate">Business Hotel</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">🏙️</div><div class="min-w-0"><div class="font-semibold truncate">City Hotel</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">🏝️</div><div class="min-w-0"><div class="font-semibold truncate">Resort Hotel</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">🏖️</div><div class="min-w-0"><div class="font-semibold truncate">Beach Hotel</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">🌊</div><div class="min-w-0"><div class="font-semibold truncate">Lake Hotel</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">🌿</div><div class="min-w-0"><div class="font-semibold truncate">Eco-friendly Hotel</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">🏨</div><div class="min-w-0"><div class="font-semibold truncate">Economy Hotel</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">🛏️</div><div class="min-w-0"><div class="font-semibold truncate">Hostel</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">🎉</div><div class="min-w-0"><div class="font-semibold truncate">Party Hotel</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">💞</div><div class="min-w-0"><div class="font-semibold truncate">Romantic Hotel</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">👨‍👩‍👧‍👦</div><div class="min-w-0"><div class="font-semibold truncate">Family Hotel</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">🫂</div><div class="min-w-0"><div class="font-semibold truncate">Friends Hotel</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">🚶</div><div class="min-w-0"><div class="font-semibold truncate">Solo Hotel</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">⛷️</div><div class="min-w-0"><div class="font-semibold truncate">Winter Sports Hotel</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">✈️</div><div class="min-w-0"><div class="font-semibold truncate">Airport Hotel</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">🎰</div><div class="min-w-0"><div class="font-semibold truncate">Casino Hotel</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">⛳</div><div class="min-w-0"><div class="font-semibold truncate">Golf Hotel</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+
+      <!-- pulled in here to avoid singleton section -->
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4">
+        <div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        <div class="flex items-center gap-3 relative">
+          <div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">💫</div>
+          <div class="min-w-0"><div class="font-semibold truncate">Vibe</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div>
+        </div>
+      </div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4">
+        <div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        <div class="flex items-center gap-3 relative">
+          <div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">🛣️</div>
+          <div class="min-w-0"><div class="font-semibold truncate">Highway Hotel</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== GROUP: Experience & Service (incl. Food) ===== -->
+  <div class="rounded-xl border border-gray-100 bg-white/70 px-4 py-3 mb-5">
+    <div class="flex items-center justify-between gap-2 mb-3">
+      <div class="flex items-center gap-2">
+        <span class="text-base">🛎️</span>
+        <h4 class="font-extrabold tracking-tight">Experience, Service & Dining</h4>
+      </div>
+      <span class="meta-chip !bg-primary/10 !border-primary/20 !text-primary">11</span>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">🤝</div><div class="min-w-0"><div class="font-semibold truncate">Service Friendliness</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">🛎️</div><div class="min-w-0"><div class="font-semibold truncate">Reception</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">🧹</div><div class="min-w-0"><div class="font-semibold truncate">Housekeeping Staff</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">🧼</div><div class="min-w-0"><div class="font-semibold truncate">Cleanliness</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">🌙</div><div class="min-w-0"><div class="font-semibold truncate">Comfort</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">🛏️</div><div class="min-w-0"><div class="font-semibold truncate">Room</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">👀</div><div class="min-w-0"><div class="font-semibold truncate">View</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <!-- dining inside this section -->
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">🥐</div><div class="min-w-0"><div class="font-semibold truncate">Breakfast</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">🍽️</div><div class="min-w-0"><div class="font-semibold truncate">Food</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">🍷</div><div class="min-w-0"><div class="font-semibold truncate">Dining Experience</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">🍽️</div><div class="min-w-0"><div class="font-semibold truncate">Room Service</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+    </div>
+  </div>
+
+  <!-- ===== GROUP: Wellness & Leisure ===== -->
+  <div class="rounded-xl border border-gray-100 bg-white/70 px-4 py-3 mb-5">
+    <div class="flex items-center justify-between gap-2 mb-3">
+      <div class="flex items-center gap-2">
+        <span class="text-base">🧖</span>
+        <h4 class="font-extrabold tracking-tight">Wellness & Leisure</h4>
+      </div>
+      <span class="meta-chip !bg-primary/10 !border-primary/20 !text-primary">6</span>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">🧘</div><div class="min-w-0"><div class="font-semibold truncate">Wellness Area</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">🧖</div><div class="min-w-0"><div class="font-semibold truncate">Wellness Hotel</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">🩺</div><div class="min-w-0"><div class="font-semibold truncate">Wellness Staff</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">🏊</div><div class="min-w-0"><div class="font-semibold truncate">Pool</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">🧖‍♂️</div><div class="min-w-0"><div class="font-semibold truncate">Sauna</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">💦</div><div class="min-w-0"><div class="font-semibold truncate">Water Park Hotel</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+    </div>
+  </div>
+
+  <!-- ===== GROUP: Location, Facilities & Connectivity ===== -->
+  <div class="rounded-xl border border-gray-100 bg-white/70 px-4 py-3">
+    <div class="flex items-center justify-between gap-2 mb-3">
+      <div class="flex items-center gap-2">
+        <span class="text-base">🧭</span>
+        <h4 class="font-extrabold tracking-tight">Location, Facilities & Connectivity</h4>
+      </div>
+      <span class="meta-chip !bg-primary/10 !border-primary/20 !text-primary">12</span>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">🧰</div><div class="min-w-0"><div class="font-semibold truncate">Amenities</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">🏛️</div><div class="min-w-0"><div class="font-semibold truncate">Hotel Building</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">🌳</div><div class="min-w-0"><div class="font-semibold truncate">Grounds</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">🌺</div><div class="min-w-0"><div class="font-semibold truncate">Terrace</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">🏸</div><div class="min-w-0"><div class="font-semibold truncate">Outdoor Sports Facilities</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">🧸</div><div class="min-w-0"><div class="font-semibold truncate">Kids Facilities</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">🍴</div><div class="min-w-0"><div class="font-semibold truncate">Restaurants & Bars</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">🍸</div><div class="min-w-0"><div class="font-semibold truncate">Bar</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">📍</div><div class="min-w-0"><div class="font-semibold truncate">Location</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">🛍️</div><div class="min-w-0"><div class="font-semibold truncate">Shopping</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">🗺️</div><div class="min-w-0"><div class="font-semibold truncate">Sightseeing</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">📶</div><div class="min-w-0"><div class="font-semibold truncate">WiFi</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+      <div class="badge-card group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4"><div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div><div class="flex items-center gap-3 relative"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center">💸</div><div class="min-w-0"><div class="font-semibold truncate">Value</div><div class="text-[11px] text-gray-500">Recognition eligible</div></div></div></div>
+    </div>
+  </div>
+</div>
+
+
+        </div>
+      </div>
+      <!-- /Body -->
+    </div>
+    <!-- /Panel -->
+  </div>
+</div>
+
+
+
+<style>
+  /* Hide quick-jump scrollbar */
+  .no-scrollbar::-webkit-scrollbar{ display:none; }
+  .no-scrollbar{ -ms-overflow-style:none; scrollbar-width:none; }
+
+  /* Inside this modal, ignore any global `.active` styling and rely on aria-selected */
+  #categoriesModal .segmented .seg-btn { transition: all .2s ease; }
+  #categoriesModal .segmented .seg-btn.active:not(.is-on){
+    background: transparent !important; color: inherit !important; box-shadow: none !important;
+  }
+  /* Our controlled "on" state */
+  #categoriesModal #catTabs .seg-btn.is-on{
+    background: linear-gradient(135deg, rgba(109,74,255,0.95), rgba(124,58,237,0.95));
+    color:#fff; box-shadow: 0 10px 30px rgba(109,74,255,0.35);
+  }
+
+  /* Badge cards — polished look */
+  #categoriesModal .badge-card{
+    border-color: hsl(240 5% 84%);
+    box-shadow: 0 10px 24px rgba(0,0,0,.06);
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  }
+  #categoriesModal .badge-card::before{
+    content:""; position:absolute; inset:0;
+    background: linear-gradient(90deg, rgba(109,74,255,.12), rgba(124,58,237,.12));
+    opacity: 0; pointer-events:none; transition: opacity .18s ease;
+  }
+  #categoriesModal .badge-card:hover{
+    transform: translateY(-2px);
+    box-shadow: 0 14px 32px rgba(0,0,0,.10);
+    border-color: rgba(124,58,237,.35);
+  }
+  #categoriesModal .badge-card:hover::before{ opacity: 1; }
+</style>
+
+
+<!-- Optional tiny utility (hide mobile quick-jump scrollbar) -->
+<style>
+  .no-scrollbar::-webkit-scrollbar{ display:none; }
+  .no-scrollbar{ -ms-overflow-style:none; scrollbar-width:none; }
+</style>
+
 </main>
 
 
@@ -1306,6 +1999,116 @@
   // Initialize
   setActiveSceneById(scenesOrder[step]);
 </script>
+
+<script>
+  (function(){
+    const modal = document.getElementById('categoriesModal');
+    const scrollEl = modal?.querySelector('#modalScroll');
+    if (scrollEl){
+      const stop = e => e.stopPropagation();
+      ['wheel','touchmove','scroll'].forEach(evt => scrollEl.addEventListener(evt, stop, { passive:false }));
+    }
+
+    // ---- Tabs highlight fix: avoid conflicting .active class from global styles ----
+    modal?.querySelectorAll('#catTabs .seg-btn.active').forEach(btn => btn.classList.remove('active'));
+
+    const syncTabs = () => {
+      const allBtns = modal.querySelectorAll('#catTabs .seg-btn');
+      allBtns.forEach(b => {
+        const on = b.getAttribute('aria-selected') === 'true';
+        b.classList.toggle('is-on', on);
+        b.tabIndex = on ? 0 : -1;
+      });
+    };
+    syncTabs();
+    document.addEventListener('tabs:change', (e) => {
+      if (modal.contains(e.target)) syncTabs();
+    });
+    modal.querySelectorAll('#catTabs .seg-btn').forEach(b =>
+      b.addEventListener('click', () => setTimeout(syncTabs, 0))
+    );
+
+    // ---- Hardcoded badge cards ----
+    const badges = [
+      { name: "Airport Hotel", icon: "✈️" },
+      { name: "Amenities", icon: "🧰" },
+      { name: "Bar", icon: "🍸" },
+      { name: "Beach Hotel", icon: "🏖️" },
+      { name: "Beds", icon: "🛌" },
+      { name: "Boutique Hotel", icon: "🎀" },
+      { name: "Breakfast", icon: "🥐" },
+      { name: "Business Facilities", icon: "💼" },
+      { name: "Business Hotel", icon: "👔" },
+      { name: "Casino Hotel", icon: "🎰" },
+      { name: "Childcare", icon: "🧸" },
+      { name: "City Hotel", icon: "🏙️" },
+      { name: "Cleanliness", icon: "🧼" },
+      { name: "Comfort", icon: "🌙" },
+      { name: "Dining Experience", icon: "🍷" },
+      { name: "Eco-friendly Hotel", icon: "🌿" },
+      { name: "Economy Hotel", icon: "🏨" },
+      { name: "Family Hotel", icon: "👨‍👩‍👧‍👦" },
+      { name: "Fitness Area", icon: "🏋️" },
+      { name: "Food", icon: "🍽️" },
+      { name: "Friends Hotel", icon: "🫂" },
+      { name: "Golf Hotel", icon: "⛳" },
+      { name: "Grounds", icon: "🌳" },
+      { name: "Highway Hotel", icon: "🛣️" },
+      { name: "Hostel", icon: "🛏️" },
+      { name: "Hotel Building", icon: "🏛️" },
+      { name: "Housekeeping Staff", icon: "🧹" },
+      { name: "Kids Facilities", icon: "🎠" },
+      { name: "Lake Hotel", icon: "🌊" },
+      { name: "Location", icon: "📍" },
+      { name: "Luxury Hotel", icon: "👑" },
+      { name: "Outdoor Sports Facilities", icon: "🏸" },
+      { name: "Party Hotel", icon: "🎉" },
+      { name: "Pool", icon: "🏊" },
+      { name: "Reception", icon: "🛎️" },
+      { name: "Resort Hotel", icon: "🏝️" },
+      { name: "Restaurants & Bars", icon: "🍴" },
+      { name: "Romantic Hotel", icon: "💞" },
+      { name: "Room", icon: "🛏️" },
+      { name: "Room Service", icon: "🍽️" },
+      { name: "Sauna", icon: "🧖‍♂️" },
+      { name: "Service Friendliness", icon: "🤝" },
+      { name: "Shopping", icon: "🛍️" },
+      { name: "Sightseeing", icon: "🗺️" },
+      { name: "Solo Hotel", icon: "🚶" },
+      { name: "Terrace", icon: "🌺" },
+      { name: "Value", icon: "💸" },
+      { name: "Vibe", icon: "💫" },
+      { name: "View", icon: "👀" },
+      { name: "Water Park Hotel", icon: "💦" },
+      { name: "Wellness Area", icon: "🧘" },
+      { name: "Wellness Hotel", icon: "🧖" },
+      { name: "Wellness Staff", icon: "🩺" },
+      { name: "WiFi", icon: "📶" },
+      { name: "Winter Sports Hotel", icon: "⛷️" }
+    ];
+
+    const mount = modal?.querySelector('#badgeCards');
+    if (mount){
+      mount.innerHTML = '';
+      badges.forEach(b => {
+        mount.innerHTML += `
+          <div class="badge-card group relative overflow-hidden rounded-2xl border bg-white p-4">
+            <div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div class="flex items-center gap-3 relative">
+              <div class="shrink-0 w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/40 grid place-items-center text-gray-800 shadow-inner">
+                ${b.icon}
+              </div>
+              <div class="min-w-0">
+                <div class="font-semibold text-gray-900 truncate">${b.name}</div>
+                <div class="text-[11px] text-gray-500">Recognition eligible</div>
+              </div>
+            </div>
+          </div>`;
+      });
+    }
+  })();
+</script>
+
 
   </body>
 </html>
